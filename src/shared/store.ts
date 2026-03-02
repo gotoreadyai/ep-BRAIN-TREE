@@ -6,19 +6,16 @@ import { buildLayout, type PosNode, type ColumnHeader } from './graph'
 const FADE = [1, 1, 0.6, 0.3]
 function connected(id: string | null, edges: TreeEdge[]): Map<string, number> | null {
   if (!id) return null
-  const dist = new Map<string, number>([[id, 0]])
-  const queue = [id]
+  const m = new Map<string, number>([[id, 1]])
+  const queue: [string, number][] = [[id, 0]]
   while (queue.length) {
-    const curr = queue.shift()!
-    const d = dist.get(curr)!
+    const [curr, d] = queue.shift()!
     if (d >= FADE.length - 1) continue
     for (const e of edges) {
       const o = e.from === curr ? e.to : e.to === curr ? e.from : null
-      if (o && !dist.has(o)) { dist.set(o, d + 1); queue.push(o) }
+      if (o && !m.has(o)) { m.set(o, FADE[d + 1]); queue.push([o, d + 1]) }
     }
   }
-  const m = new Map<string, number>()
-  for (const [nid, d] of dist) m.set(nid, FADE[d])
   return m
 }
 

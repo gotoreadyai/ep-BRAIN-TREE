@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls, Line, Stars, Sparkles } from '@react-three/drei'
 import { useTreeStore } from '../../shared/store'
 import type { PosNode } from '../../shared/graph'
-import type { TreeEdge, NodeStatus } from '../../shared/types'
+import type { TreeEdge } from '../../shared/types'
 import NodeMesh from './NodeMesh'
 
 /* Układy słoneczne — słońca (backbone) na spirali, planety na orbitach */
@@ -77,25 +77,6 @@ function CameraRig({ target, selected }: { target: readonly [number, number, num
     minDistance={15} maxDistance={120} />
 }
 
-function EdgeLine({ edge, nodeMap, proximity, bridgeColor, nodeStates }: {
-  edge: TreeEdge; nodeMap: Map<string, PosNode>; proximity: number; bridgeColor: string
-  nodeStates: Record<string, NodeStatus>
-}) {
-  const a = nodeMap.get(edge.from), b = nodeMap.get(edge.to)
-  if (!a || !b) return null
-  const color = edge.type === 'bridge' ? bridgeColor
-    : edge.type === 'progression' ? '#ffffff' : '#888888'
-  const baseOp = edge.type === 'bridge' ? 0.3 : edge.type === 'progression' ? 0.15 : 0.08
-  const aLocked = nodeStates[edge.from] === 'locked'
-  const bLocked = nodeStates[edge.to] === 'locked'
-  const stateMul = (aLocked && bLocked) ? 0.05 : (aLocked || bLocked) ? 0.3 : 1
-  return (
-    <Line points={[[a.x, a.y, a.z], [b.x, b.y, b.z]]}
-      color={color} lineWidth={edge.type === 'progression' ? 1.5 : 0.5}
-      opacity={baseOp * stateMul * proximity} transparent />
-  )
-}
-
 export default function TreeScene() {
   const { def, nodes, edges, backbone, selectedNodeId,
     connectedIds, setSelectedNode, nodeStates } = useTreeStore()
@@ -120,9 +101,16 @@ export default function TreeScene() {
       <Sparkles count={40} scale={[60, 50, 30]} size={2} speed={0.3} opacity={0.4} />
 
       {edges.map((edge, i) => {
+        const a = gMap.get(edge.from), b = gMap.get(edge.to)
+        if (!a || !b) return null
         const ep = connectedIds ? Math.max(connectedIds.get(edge.from) ?? 0.08, connectedIds.get(edge.to) ?? 0.08) : 1
-        return <EdgeLine key={i} edge={edge} nodeMap={gMap} proximity={ep}
-          bridgeColor={bridgeColor} nodeStates={nodeStates} />
+        const aL = nodeStates[edge.from] === 'locked', bL = nodeStates[edge.to] === 'locked'
+        const sm = (aL && bL) ? 0.05 : (aL || bL) ? 0.3 : 1
+        const color = edge.type === 'bridge' ? bridgeColor : edge.type === 'progression' ? '#ffffff' : '#888888'
+        const baseOp = edge.type === 'bridge' ? 0.3 : edge.type === 'progression' ? 0.15 : 0.08
+        return <Line key={i} points={[[a.x, a.y, a.z], [b.x, b.y, b.z]]}
+          color={color} lineWidth={edge.type === 'progression' ? 1.5 : 0.5}
+          opacity={baseOp * sm * ep} transparent />
       })}
 
       {gNodes.map(node => (

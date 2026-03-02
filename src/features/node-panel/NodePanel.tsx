@@ -48,15 +48,12 @@ export default function NodePanel() {
       {conns.length > 0 && (
         <div className="mt-2 pt-2 border-t border-white/10 space-y-1">
           {conns.map(c => {
-            const otherId = c.from === node.id ? c.to : c.from
-            const other = nodeMap.get(otherId)
-            return other ? (
-              <div key={otherId} className="flex items-center gap-1.5 text-xs">
-                <span className={`w-1.5 h-1.5 ${other.branch === 'bridge' ? 'rotate-45' : 'rounded-full'}`}
-                  style={{ background: def.branches[other.branch]?.color }} />
-                <span className="text-gray-300">{other.title}</span>
-              </div>
-            ) : null
+            const o = nodeMap.get(c.from === node.id ? c.to : c.from)
+            return o && <div key={o.id} className="flex items-center gap-1.5 text-xs">
+              <span className={`w-1.5 h-1.5 ${o.branch === 'bridge' ? 'rotate-45' : 'rounded-full'}`}
+                style={{ background: def.branches[o.branch]?.color }} />
+              <span className="text-gray-300">{o.title}</span>
+            </div>
           })}
         </div>
       )}
