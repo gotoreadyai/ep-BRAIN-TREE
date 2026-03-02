@@ -57,8 +57,11 @@ function galaxyLayout(nodes: PosNode[], edges: TreeEdge[], backbone: string,
         const anchor = (adj.get(p.id) ?? []).find(nb => pos.has(nb) && activeNeighbors.has(nb))
           ?? (activeNeighbors.has(p.id) ? activeId : null)
         if (anchor) {
+          // Ustaw most ZA anchorem, w kierunku od słońca — wyraźnie bliżej anchora niż słońca
           const [ax, ay, az] = pos.get(anchor)!
-          pos.set(p.id, [ax + Math.cos(a) * 3, ay - 2 + Math.sin(a * 2) * 0.8, az + Math.sin(a) * 3])
+          const dx = ax - sx, dz = az - sz
+          const d = Math.sqrt(dx * dx + dz * dz) || 1
+          pos.set(p.id, [ax + (dx / d) * 3, ay - 1.5, az + (dz / d) * 3])
         } else {
           pos.set(p.id, [sx + Math.cos(a) * 7, sy + Math.sin(a * 2) * 1.5, sz + Math.sin(a) * 7])
         }
