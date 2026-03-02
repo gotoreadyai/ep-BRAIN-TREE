@@ -26,17 +26,17 @@ function initStates(nodes: { id: string; tier: number; branch: string }[], backb
   return s
 }
 
-// Odblokuj max 3 sąsiadów: progression > branch. Bridge bez limitu.
-function unlock(id: string, states: Record<string, NodeStatus>, edges: TreeEdge[]) {
-  const candidates: { id: string; prio: number }[] = []
+// Odblokuj 1 per branch: gatunki/motywy → lektury → warsztat. Progression + bridge osobno.
+function unlock(id: string, states: Record<string, NodeStatus>, edges: TreeEdge[],
+  nodeMap: Map<string, { branch: string }>) {
+  const unlocked = new Set<string>()
   for (const e of edges) {
     const o = e.from === id ? e.to : e.to === id ? e.from : null
     if (!o || states[o] !== 'locked') continue
-    if (e.type === 'bridge') { states[o] = 'available'; continue }
-    candidates.push({ id: o, prio: e.type === 'progression' ? 0 : 1 })
+    if (e.type === 'progression' || e.type === 'bridge') { states[o] = 'available'; continue }
+    const branch = nodeMap.get(o)?.branch
+    if (branch && !unlocked.has(branch)) { states[o] = 'available'; unlocked.add(branch) }
   }
-  candidates.sort((a, b) => a.prio - b.prio)
-  for (const c of candidates.slice(0, 3)) states[c.id] = 'available'
 }
 
 const PK = (id: string) => `progress:${id}`
@@ -102,9 +102,9 @@ export const useTreeStore = create<TreeStore>((set) => ({
     // Zachowaj postęp, nowe węzły = locked, odblokuj przy opanowanych sąsiadach
     const nodeStates = { ...s.nodeStates }
     for (const n of pack.nodes) if (!(n.id in nodeStates)) nodeStates[n.id] = 'locked'
-    for (const e of pack.edges) {
-      if (nodeStates[e.from] === 'mastered' && nodeStates[e.to] === 'locked') nodeStates[e.to] = 'available'
-      if (nodeStates[e.to] === 'mastered' && nodeStates[e.from] === 'locked') nodeStates[e.from] = 'available'
+    for (const id of Object.keys(nodeStates)) {
+      if (nodeStates[id] === 'mastered' || nodeStates[id] === 'in_progress')
+        unlock(id, nodeStates, edges, nodeMap)
     }
     localStorage.setItem(PK(merged.id), JSON.stringify(nodeStates))
     return { def: merged, nodes, edges, columns, nodeMap, nodeStates,
@@ -124,8 +124,8 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const st = s.nodeStates[id]
     if (st === 'locked' || st === 'mastered') return s
     const nodeStates = { ...s.nodeStates }
-    if (st === 'available') { nodeStates[id] = 'in_progress'; unlock(id, nodeStates, s.edges) }
-    else { nodeStates[id] = 'mastered'; unlock(id, nodeStates, s.edges) }
+    if (st === 'available') { nodeStates[id] = 'in_progress'; unlock(id, nodeStates, s.edges, s.nodeMap) }
+    else { nodeStates[id] = 'mastered'; unlock(id, nodeStates, s.edges, s.nodeMap) }
     localStorage.setItem(PK(s.def.id), JSON.stringify(nodeStates))
     return { nodeStates }
   }),
