@@ -13,17 +13,22 @@ function connected(id: string | null, edges: TreeEdge[]): Set<string> | null {
   return s
 }
 
-// Demo: uczeń opanował materiał do tier 2 (Antyk–Renesans)
-function demoStates(nodes: { id: string; tier: number }[]) {
+// Początkowy stan: tier 0 = available, reszta locked
+function initStates(nodes: { id: string; tier: number }[]) {
   const s: Record<string, NodeStatus> = {}
-  for (const n of nodes) {
-    if (n.tier <= 2) s[n.id] = 'mastered'
-    else if (n.tier === 3) s[n.id] = 'in_progress'
-    else if (n.tier === 4) s[n.id] = 'available'
-    else s[n.id] = 'locked'
-  }
+  for (const n of nodes) s[n.id] = n.tier === 0 ? 'available' : 'locked'
   return s
 }
+
+// Odblokuj sąsiadów opanowanego węzła
+function unlock(id: string, states: Record<string, NodeStatus>, edges: TreeEdge[]) {
+  for (const e of edges) {
+    const o = e.from === id ? e.to : e.to === id ? e.from : null
+    if (o && states[o] === 'locked') states[o] = 'available'
+  }
+}
+
+const PK = (id: string) => `progress:${id}`
 
 // Scal rozszerzenie z bazą
 function merge(base: SkillTreeDef, ext: TreePack): SkillTreeDef {
@@ -53,6 +58,8 @@ interface TreeStore {
   load: (def: SkillTreeDef) => void
   loadExtension: (pack: TreePack, repo: string) => void
   loadContent: (pack: ContentPack) => void
+  progressNode: (id: string) => void
+  resetProgress: () => void
   setExtensions: (exts: PackEntry[]) => void
   setHoveredNode: (id: string | null) => void
   setSelectedNode: (id: string | null) => void
@@ -69,7 +76,8 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const { nodes, edges, columns } = buildLayout(def)
     const nodeMap = new Map(nodes.map(n => [n.id, n]))
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
-    const nodeStates = demoStates(def.nodes)
+    const saved = localStorage.getItem(PK(def.id))
+    const nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes)
     set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates,
       reviewDue: new Set(), content: {},
       selectedNodeId: null, hoveredNodeId: null, connectedIds: null })
@@ -82,8 +90,16 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const nodeMap = new Map(nodes.map(n => [n.id, n]))
     const loadedExtensions = new Set(s.loadedExtensions)
     loadedExtensions.add(repo)
-    return { def: merged, nodes, edges, columns, nodeMap,
-      nodeStates: demoStates(merged.nodes), content: s.content, loadedExtensions,
+    // Zachowaj postęp, nowe węzły = locked, odblokuj przy opanowanych sąsiadach
+    const nodeStates = { ...s.nodeStates }
+    for (const n of pack.nodes) if (!(n.id in nodeStates)) nodeStates[n.id] = 'locked'
+    for (const e of pack.edges) {
+      if (nodeStates[e.from] === 'mastered' && nodeStates[e.to] === 'locked') nodeStates[e.to] = 'available'
+      if (nodeStates[e.to] === 'mastered' && nodeStates[e.from] === 'locked') nodeStates[e.from] = 'available'
+    }
+    localStorage.setItem(PK(merged.id), JSON.stringify(nodeStates))
+    return { def: merged, nodes, edges, columns, nodeMap, nodeStates,
+      content: s.content, loadedExtensions,
       selectedNodeId: null, hoveredNodeId: null, connectedIds: null }
   }),
 
@@ -92,6 +108,24 @@ export const useTreeStore = create<TreeStore>((set) => ({
     for (const [nodeId, items] of Object.entries(pack.content))
       content[nodeId] = [...(content[nodeId] ?? []), ...items]
     return { content }
+  }),
+
+  progressNode: (id) => set((s) => {
+    if (!s.def) return s
+    const st = s.nodeStates[id]
+    if (st === 'locked' || st === 'mastered') return s
+    const nodeStates = { ...s.nodeStates }
+    if (st === 'available') nodeStates[id] = 'in_progress'
+    else { nodeStates[id] = 'mastered'; unlock(id, nodeStates, s.edges) }
+    localStorage.setItem(PK(s.def.id), JSON.stringify(nodeStates))
+    return { nodeStates }
+  }),
+
+  resetProgress: () => set((s) => {
+    if (!s.def) return s
+    const nodeStates = initStates(s.def.nodes)
+    localStorage.setItem(PK(s.def.id), JSON.stringify(nodeStates))
+    return { nodeStates }
   }),
 
   setExtensions: (exts) => set({ extensions: exts }),

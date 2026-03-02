@@ -6,7 +6,8 @@ import NodePanel from './features/node-panel/NodePanel'
 import ExtensionShelf from './features/extensions/ExtensionShelf'
 import Catalog from './features/catalog/Catalog'
 import Loader from './features/loader/Loader'
-import { Map, Sparkles } from 'lucide-react'
+import UserPanel from './features/user/UserPanel'
+import { Map, Sparkles, User } from 'lucide-react'
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-1.5 px-3 py-1 rounded transition-colors text-xs ${isActive ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/50'}`
@@ -25,6 +26,7 @@ function TreeShell() {
         <nav className="flex items-center gap-0.5 rounded bg-white/[0.04] p-0.5">
           <NavLink to="/metro" className={navCls}><Map size={12} /> Metro</NavLink>
           <NavLink to="/galaxy" className={navCls}><Sparkles size={12} /> Galaxy</NavLink>
+          <NavLink to="/profile" className={navCls}><User size={12} /> Profil</NavLink>
         </nav>
       </header>
 
@@ -32,6 +34,7 @@ function TreeShell() {
         <Routes>
           <Route path="metro" element={<MetroMap />} />
           <Route path="galaxy" element={<TreeScene />} />
+          <Route path="profile" element={<UserPanel />} />
           <Route path="*" element={<Navigate to="metro" replace />} />
         </Routes>
 

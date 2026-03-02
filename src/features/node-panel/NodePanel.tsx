@@ -9,7 +9,7 @@ const color: Record<NodeStatus, string> = {
 }
 
 export default function NodePanel() {
-  const { def, nodeMap, edges, selectedNodeId, nodeStates, reviewDue, content } = useTreeStore()
+  const { def, nodeMap, edges, selectedNodeId, nodeStates, reviewDue, content, progressNode } = useTreeStore()
   const node = selectedNodeId ? nodeMap.get(selectedNodeId) : undefined
   if (!def || !node) return null
 
@@ -36,6 +36,14 @@ export default function NodePanel() {
           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Do powtórki</span>
         )}
       </div>
+
+      {(state === 'available' || state === 'in_progress') && (
+        <button onClick={() => progressNode(node.id)}
+          className="mt-2 w-full text-xs py-1 rounded transition-colors"
+          style={{ background: color[state] + '20', color: color[state] }}>
+          {state === 'available' ? 'Rozpocznij' : 'Opanowane!'}
+        </button>
+      )}
 
       {node.branch === 'bridge' && node.bridgeTo && (
         <p className="text-sm mt-1" style={{ color: def.branches.bridge?.color }}>→ {node.bridgeTo}</p>
