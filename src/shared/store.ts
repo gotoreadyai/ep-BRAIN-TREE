@@ -124,7 +124,7 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const st = s.nodeStates[id]
     if (st === 'locked' || st === 'mastered') return s
     const nodeStates = { ...s.nodeStates }
-    if (st === 'available') nodeStates[id] = 'in_progress'
+    if (st === 'available') { nodeStates[id] = 'in_progress'; unlock(id, nodeStates, s.edges) }
     else { nodeStates[id] = 'mastered'; unlock(id, nodeStates, s.edges) }
     localStorage.setItem(PK(s.def.id), JSON.stringify(nodeStates))
     return { nodeStates }
