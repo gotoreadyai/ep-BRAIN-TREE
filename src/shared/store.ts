@@ -19,10 +19,10 @@ function connected(id: string | null, edges: TreeEdge[]): Map<string, number> | 
   return m
 }
 
-// Początkowy stan: tier 0 = available, reszta locked
-function initStates(nodes: { id: string; tier: number }[]) {
+// Początkowy stan: tylko backbone tier 0 = available, reszta locked
+function initStates(nodes: { id: string; tier: number; branch: string }[], backbone: string) {
   const s: Record<string, NodeStatus> = {}
-  for (const n of nodes) s[n.id] = n.tier === 0 ? 'available' : 'locked'
+  for (const n of nodes) s[n.id] = (n.tier === 0 && n.branch === backbone) ? 'available' : 'locked'
   return s
 }
 
@@ -86,8 +86,8 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
     const saved = localStorage.getItem(PK(def.id))
     let nodeStates: Record<string, NodeStatus>
-    try { nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes) }
-    catch { nodeStates = initStates(def.nodes) }
+    try { nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes, backbone) }
+    catch { nodeStates = initStates(def.nodes, backbone) }
     set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates, content: {},
       selectedNodeId: null, connectedIds: null })
   },
@@ -132,7 +132,7 @@ export const useTreeStore = create<TreeStore>((set) => ({
 
   resetProgress: () => set((s) => {
     if (!s.def) return s
-    const nodeStates = initStates(s.def.nodes)
+    const nodeStates = initStates(s.def.nodes, s.backbone)
     localStorage.setItem(PK(s.def.id), JSON.stringify(nodeStates))
     return { nodeStates }
   }),
