@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
+body { background: #0a0a0f; }
+
+@keyframes metro-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0; }
 }
+.metro-pulse { animation: metro-pulse 2s ease-in-out infinite; }
+.metro-progress { animation: metro-pulse 3s ease-in-out infinite; }

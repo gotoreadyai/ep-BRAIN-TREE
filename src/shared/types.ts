@@ -1,6 +1,3 @@
-// Schemat danych — generyczny silnik skill tree
-// Każdy przedmiot/kurs to jeden SkillTreeDef
-
 export interface BranchDef {
   label: string
   color: string   // hex CSS, np. '#f43f5e'
@@ -32,3 +29,5 @@ export interface SkillTreeDef {
   nodes: TreeNode[]
   edges: TreeEdge[]
 }
+
+export type NodeStatus = 'mastered' | 'in_progress' | 'available' | 'locked'
