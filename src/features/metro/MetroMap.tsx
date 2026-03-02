@@ -75,7 +75,8 @@ export default function MetroMap() {
           const isBridge = node.branch === 'bridge'
           const r = isBack ? 5 : 3.5
           const sel = selectedNodeId === node.id
-          const op = (state === 'locked' ? 0.15 : state === 'available' ? 0.45 : 1) * np
+          const ringOp = (state === 'locked' ? 0.1 : state === 'available' ? 0.25 : state === 'in_progress' ? 0.4 : 0.6) * np
+          const filled = state === 'mastered' || state === 'in_progress'
 
           return (
             <g key={node.id}>
@@ -87,25 +88,18 @@ export default function MetroMap() {
                 <circle cx={node.sx} cy={node.sy} r={r + 8} fill={color} fillOpacity={0.08} />
               )}
 
-              {/* Stacja */}
+              {/* Outline — zawsze widoczny */}
               {isBridge ? (
-                <rect
-                  x={node.sx - (state === 'locked' ? 1.5 : r * 0.7)}
-                  y={node.sy - (state === 'locked' ? 1.5 : r * 0.7)}
-                  width={state === 'locked' ? 3 : r * 1.4}
-                  height={state === 'locked' ? 3 : r * 1.4}
-                  fill={state === 'mastered' || state === 'in_progress' ? color : 'none'}
-                  stroke={state === 'available' ? color : 'none'}
-                  strokeWidth={1.5}
-                  transform={`rotate(45 ${node.sx} ${node.sy})`}
-                  opacity={op} />
-              ) : state === 'locked' ? (
-                <circle cx={node.sx} cy={node.sy} r={2} fill={color} opacity={op} />
-              ) : state === 'available' ? (
-                <circle cx={node.sx} cy={node.sy} r={r}
-                  fill="none" stroke={color} strokeWidth={1.5} opacity={op} />
+                <rect x={node.sx - r * 0.7} y={node.sy - r * 0.7} width={r * 1.4} height={r * 1.4}
+                  fill={filled ? color : 'none'} fillOpacity={filled ? ringOp : 0}
+                  stroke={color} strokeWidth={1} opacity={ringOp}
+                  transform={`rotate(45 ${node.sx} ${node.sy})`} />
               ) : (
-                <circle cx={node.sx} cy={node.sy} r={r} fill={color} opacity={op} />
+                <>
+                  <circle cx={node.sx} cy={node.sy} r={r}
+                    fill="none" stroke={color} strokeWidth={1} opacity={ringOp} />
+                  {filled && <circle cx={node.sx} cy={node.sy} r={r} fill={color} opacity={ringOp} />}
+                </>
               )}
 
               <circle cx={node.sx} cy={node.sy} r={14}

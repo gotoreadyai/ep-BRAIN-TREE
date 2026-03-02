@@ -29,9 +29,16 @@ export default function NodeMesh({ node, color, isBackbone, selected, proximity,
 
   const baseEmissive = selected ? 0.8
     : state === 'mastered' ? 0.3 : state === 'in_progress' ? 0.2 : 0
+  const ringOp = (state === 'locked' ? 0.1 : state === 'available' ? 0.25 : state === 'in_progress' ? 0.4 : 0.6) * proximity
 
   return (
     <group position={[node.x, node.y, node.z]}>
+      {/* Outline ring — zawsze widoczny */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} scale={scale}>
+        <torusGeometry args={[size * 1.4, 0.02, 8, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={ringOp} />
+      </mesh>
+
       <mesh scale={scale}
         rotation={isBridge ? [Math.PI / 4, 0, Math.PI / 4] : undefined}
         onClick={(e) => { e.stopPropagation(); onClick(node.id) }}>
