@@ -77,8 +77,8 @@ function CameraRig({ target, selected }: { target: readonly [number, number, num
     minDistance={15} maxDistance={120} />
 }
 
-function EdgeLine({ edge, nodeMap, dimmed, bridgeColor, nodeStates }: {
-  edge: TreeEdge; nodeMap: Map<string, PosNode>; dimmed: boolean; bridgeColor: string
+function EdgeLine({ edge, nodeMap, proximity, bridgeColor, nodeStates }: {
+  edge: TreeEdge; nodeMap: Map<string, PosNode>; proximity: number; bridgeColor: string
   nodeStates: Record<string, NodeStatus>
 }) {
   const a = nodeMap.get(edge.from), b = nodeMap.get(edge.to)
@@ -92,7 +92,7 @@ function EdgeLine({ edge, nodeMap, dimmed, bridgeColor, nodeStates }: {
   return (
     <Line points={[[a.x, a.y, a.z], [b.x, b.y, b.z]]}
       color={color} lineWidth={edge.type === 'progression' ? 1.5 : 0.5}
-      opacity={dimmed ? 0.02 : baseOp * stateMul} transparent />
+      opacity={baseOp * stateMul * proximity} transparent />
   )
 }
 
@@ -122,8 +122,8 @@ export default function TreeScene() {
       <Sparkles count={40} scale={[60, 50, 30]} size={2} speed={0.3} opacity={0.4} />
 
       {edges.map((edge, i) => {
-        const isDimmed = !!connectedIds && !connectedIds.has(edge.from) && !connectedIds.has(edge.to)
-        return <EdgeLine key={i} edge={edge} nodeMap={gMap} dimmed={isDimmed}
+        const ep = connectedIds ? Math.max(connectedIds.get(edge.from) ?? 0.08, connectedIds.get(edge.to) ?? 0.08) : 1
+        return <EdgeLine key={i} edge={edge} nodeMap={gMap} proximity={ep}
           bridgeColor={bridgeColor} nodeStates={nodeStates} />
       })}
 
@@ -132,7 +132,7 @@ export default function TreeScene() {
           color={def.branches[node.branch]?.color ?? '#6b7280'}
           isBackbone={node.branch === backbone}
           selected={selectedNodeId === node.id}
-          dimmed={!!connectedIds && !connectedIds.has(node.id)}
+          proximity={connectedIds ? (connectedIds.get(node.id) ?? 0.06) : 1}
           state={nodeStates[node.id] ?? 'locked'}
           onClick={setSelectedNode} />
       ))}

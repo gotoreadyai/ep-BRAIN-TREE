@@ -23,7 +23,7 @@ export default function MetroMap() {
 
   if (!def) return null
 
-  const dim = (id: string) => !!connectedIds && !connectedIds.has(id)
+  const prox = (id: string) => connectedIds ? (connectedIds.get(id) ?? 0.08) : 1
   const st = (id: string) => nodeStates[id] ?? 'locked'
 
   return (
@@ -48,7 +48,7 @@ export default function MetroMap() {
         {edges.map((e, i) => {
           const a = svgMap.get(e.from), b = svgMap.get(e.to)
           if (!a || !b) return null
-          const d = dim(e.from) && dim(e.to)
+          const ep = Math.max(prox(e.from), prox(e.to))
           const bridge = e.type === 'bridge'
           const aLocked = st(e.from) === 'locked', bLocked = st(e.to) === 'locked'
           const stateMul = (aLocked && bLocked) ? 0.05 : (aLocked || bLocked) ? 0.3 : 1
@@ -60,7 +60,7 @@ export default function MetroMap() {
             <line key={i} x1={a.sx} y1={a.sy} x2={b.sx} y2={b.sy}
               stroke={color}
               strokeWidth={e.type === 'progression' ? 2.5 : 1}
-              strokeOpacity={d ? 0.03 : baseOp * stateMul}
+              strokeOpacity={baseOp * stateMul * ep}
               strokeDasharray={bridge ? '4 3' : undefined}
               strokeLinecap="round" />
           )
@@ -69,17 +69,17 @@ export default function MetroMap() {
         {/* Węzły */}
         {svgNodes.map(node => {
           const state = st(node.id)
-          const dimmed = dim(node.id)
+          const np = prox(node.id)
           const color = def.branches[node.branch]?.color ?? '#666'
           const isBack = node.branch === backbone
           const isBridge = node.branch === 'bridge'
           const r = isBack ? 5 : 3.5
           const sel = selectedNodeId === node.id
-          const op = dimmed ? 0.1 : state === 'locked' ? 0.15 : state === 'available' ? 0.45 : 1
+          const op = (state === 'locked' ? 0.15 : state === 'available' ? 0.45 : 1) * np
 
           return (
             <g key={node.id}>
-              {state === 'in_progress' && !dimmed && (
+              {state === 'in_progress' && np > 0.5 && (
                 <circle cx={node.sx} cy={node.sy} r={r + 4}
                   fill="none" stroke={color} strokeWidth={1} className="metro-progress" />
               )}
@@ -114,11 +114,11 @@ export default function MetroMap() {
 
               {state !== 'locked' && (
                 <text x={node.sx + r + 7} y={node.sy + 3.5}
-                  fill={dimmed ? '#333' : '#ccc'}
+                  fill="#ccc"
                   fontSize={isBack ? 11 : 9}
                   fontWeight={isBack ? 700 : 400}
                   className="pointer-events-none select-none"
-                  opacity={dimmed ? 0.15 : state === 'available' ? 0.5 : 0.85}>
+                  opacity={(state === 'available' ? 0.5 : 0.85) * np}>
                   {node.title}
                   {isBridge && node.bridgeTo && (
                     <tspan fill={color} opacity={0.7}>{` → ${node.bridgeTo}`}</tspan>

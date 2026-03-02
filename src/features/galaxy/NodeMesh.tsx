@@ -8,21 +8,21 @@ import type { NodeStatus } from '../../shared/types'
 
 interface Props {
   node: PosNode; color: string; isBackbone: boolean
-  selected: boolean; dimmed: boolean; state: NodeStatus
+  selected: boolean; proximity: number; state: NodeStatus
   onClick: (id: string) => void
 }
 
-export default function NodeMesh({ node, color, isBackbone, selected, dimmed, state, onClick }: Props) {
+export default function NodeMesh({ node, color, isBackbone, selected, proximity, state, onClick }: Props) {
   const isBridge = node.branch === 'bridge'
   const size = isBackbone ? 0.7 : isBridge ? 0.3 : 0.45
   const scale = (state === 'locked' ? 0.4 : 1) * (selected ? 1.2 : 1)
   const stateOp = state === 'locked' ? 0.1 : state === 'available' ? 0.35 : 1
-  const opacity = dimmed ? 0.06 : stateOp
-  const additive = state === 'mastered' && !dimmed
+  const opacity = stateOp * proximity
+  const additive = state === 'mastered' && proximity > 0.5
 
   const matRef = useRef<MeshStandardMaterial>(null)
   useFrame(({ clock }) => {
-    if (!matRef.current || dimmed) return
+    if (!matRef.current || proximity < 0.5) return
     if (state === 'in_progress')
       matRef.current.emissiveIntensity = 0.2 + Math.sin(clock.elapsedTime * 1.5) * 0.15
   })
@@ -45,7 +45,7 @@ export default function NodeMesh({ node, color, isBackbone, selected, dimmed, st
           depthWrite={!additive} />
       </mesh>
 
-      {isBackbone && state === 'mastered' && !dimmed && (
+      {isBackbone && state === 'mastered' && proximity > 0.5 && (
         <pointLight color={color} intensity={0.8} distance={12} />
       )}
 

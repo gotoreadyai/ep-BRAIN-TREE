@@ -2,15 +2,24 @@ import { create } from 'zustand'
 import type { SkillTreeDef, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus, PackEntry } from './types'
 import { buildLayout, type PosNode, type ColumnHeader } from './graph'
 
-// Sąsiedzi węzła (do dimming)
-function connected(id: string | null, edges: TreeEdge[]): Set<string> | null {
+// Zasięg widoczności — BFS z gradientem (0=selected, 1=sąsiad, 2=60%, 3=30%)
+const FADE = [1, 1, 0.6, 0.3]
+function connected(id: string | null, edges: TreeEdge[]): Map<string, number> | null {
   if (!id) return null
-  const s = new Set<string>([id])
-  for (const e of edges) {
-    if (e.from === id) s.add(e.to)
-    if (e.to === id) s.add(e.from)
+  const dist = new Map<string, number>([[id, 0]])
+  const queue = [id]
+  while (queue.length) {
+    const curr = queue.shift()!
+    const d = dist.get(curr)!
+    if (d >= FADE.length - 1) continue
+    for (const e of edges) {
+      const o = e.from === curr ? e.to : e.to === curr ? e.from : null
+      if (o && !dist.has(o)) { dist.set(o, d + 1); queue.push(o) }
+    }
   }
-  return s
+  const m = new Map<string, number>()
+  for (const [nid, d] of dist) m.set(nid, FADE[d])
+  return m
 }
 
 // Początkowy stan: tier 0 = available, reszta locked
@@ -48,7 +57,7 @@ interface TreeStore {
   nodeMap: Map<string, PosNode>
   backbone: string
   selectedNodeId: string | null
-  connectedIds: Set<string> | null
+  connectedIds: Map<string, number> | null
   nodeStates: Record<string, NodeStatus>
   content: Record<string, ContentItem[]>
   extensions: PackEntry[]
