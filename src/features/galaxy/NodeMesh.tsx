@@ -23,8 +23,18 @@ export default function NodeMesh({ node, color, isBackbone, selected, proximity,
     matRef.current.opacity = (0.7 + Math.sin(clock.elapsedTime * 1.5) * 0.3) * proximity
   })
 
+  const groupRef = useRef<any>(null)
+  useFrame(({ clock }) => {
+    if (!groupRef.current) return
+    const p = groupRef.current.position
+    // Lerp do docelowej pozycji (node.x/y/z mogą się zmieniać dynamicznie)
+    p.x += (node.x - p.x) * 0.03
+    p.y += (node.y - p.y) * 0.03
+    p.z += (node.z - p.z) * 0.03
+  })
+
   return (
-    <group position={[node.x, node.y, node.z]}>
+    <group ref={groupRef} position={[node.x, node.y, node.z]}>
       <Billboard>
         {/* Outline ring — zawsze widoczny */}
         <mesh scale={scale}>

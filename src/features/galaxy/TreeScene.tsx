@@ -7,7 +7,8 @@ import type { TreeEdge } from '../../shared/types'
 import NodeMesh from './NodeMesh'
 
 /* Układy słoneczne — słońca (backbone) na spirali, planety na orbitach */
-function galaxyLayout(nodes: PosNode[], edges: TreeEdge[], backbone: string): PosNode[] {
+function galaxyLayout(nodes: PosNode[], edges: TreeEdge[], backbone: string,
+  selectedId: string | null, nodeStates: Record<string, string>): PosNode[] {
   const adj = new Map<string, string[]>()
   for (const e of edges) {
     if (!adj.has(e.from)) adj.set(e.from, [])
@@ -41,14 +42,23 @@ function galaxyLayout(nodes: PosNode[], edges: TreeEdge[], backbone: string): Po
     sys.get(sun)!.push(n)
   }
 
-  /* Orbity — planety wokół słońc */
+  /* Znajdź aktywny węzeł (selected lub in_progress) do przyciągania mostów */
+  const activeId = selectedId ?? Object.keys(nodeStates).find(k => nodeStates[k] === 'in_progress') ?? null
+  const activePos = activeId ? pos.get(activeId) : null
+
+  /* Orbity — planety wokół słońc, mosty orbitują aktywny węzeł */
   for (const [sid, planets] of sys) {
     const [sx, sy, sz] = pos.get(sid)!
     planets.forEach((p, i) => {
       const a = (i / planets.length) * Math.PI * 2
-      const r = p.branch === 'bridge' ? 7 : 4
-      const yOff = p.branch === 'bridge' ? -10 : 0
-      pos.set(p.id, [sx + Math.cos(a) * r, sy + Math.sin(a * 2) * 1.5 + yOff, sz + Math.sin(a) * r])
+      if (p.branch === 'bridge' && activePos) {
+        // Most orbituje aktywny węzeł
+        const [ax, ay, az] = activePos
+        pos.set(p.id, [ax + Math.cos(a) * 5, ay - 3 + Math.sin(a * 2) * 1, az + Math.sin(a) * 5])
+      } else {
+        const r = p.branch === 'bridge' ? 7 : 4
+        pos.set(p.id, [sx + Math.cos(a) * r, sy + Math.sin(a * 2) * 1.5, sz + Math.sin(a) * r])
+      }
     })
   }
 
@@ -83,12 +93,13 @@ export default function TreeScene() {
     connectedIds, setSelectedNode, nodeStates } = useTreeStore()
 
   const { gNodes, gMap, center } = useMemo(() => {
-    const gn = galaxyLayout(nodes, edges, backbone)
-    const cx = gn.reduce((s, n) => s + n.x, 0) / (gn.length || 1)
-    const cy = gn.reduce((s, n) => s + n.y, 0) / (gn.length || 1)
-    const cz = gn.reduce((s, n) => s + n.z, 0) / (gn.length || 1)
+    const gn = galaxyLayout(nodes, edges, backbone, selectedNodeId, nodeStates)
+    const nonBridge = gn.filter(n => n.branch !== 'bridge')
+    const cx = nonBridge.reduce((s, n) => s + n.x, 0) / (nonBridge.length || 1)
+    const cy = nonBridge.reduce((s, n) => s + n.y, 0) / (nonBridge.length || 1)
+    const cz = nonBridge.reduce((s, n) => s + n.z, 0) / (nonBridge.length || 1)
     return { gNodes: gn, gMap: new Map(gn.map(n => [n.id, n])), center: [cx, cy, cz] as const }
-  }, [nodes, edges, backbone])
+  }, [nodes, edges, backbone, selectedNodeId, nodeStates])
 
   if (!def) return null
   const bridgeColor = def.branches.bridge?.color ?? '#fbbf24'
