@@ -47,7 +47,8 @@ function galaxyLayout(nodes: PosNode[], edges: TreeEdge[], backbone: string): Po
     planets.forEach((p, i) => {
       const a = (i / planets.length) * Math.PI * 2
       const r = p.branch === 'bridge' ? 7 : 4
-      pos.set(p.id, [sx + Math.cos(a) * r, sy + Math.sin(a * 2) * 1.5, sz + Math.sin(a) * r])
+      const yOff = p.branch === 'bridge' ? -10 : 0
+      pos.set(p.id, [sx + Math.cos(a) * r, sy + Math.sin(a * 2) * 1.5 + yOff, sz + Math.sin(a) * r])
     })
   }
 

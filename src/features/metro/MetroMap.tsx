@@ -11,13 +11,19 @@ export default function MetroMap() {
   const { def, nodes, edges, columns, selectedNodeId, connectedIds, backbone,
     setSelectedNode, nodeStates } = useTreeStore()
 
-  const { svgNodes, svgMap, vb } = useMemo(() => {
-    if (!nodes.length) return { svgNodes: [] as SvgNode[], svgMap: new Map<string, SvgNode>(), vb: '0 0 100 100' }
-    const sn: SvgNode[] = nodes.map(n => ({ ...n, sx: n.x * SCALE, sy: n.tier * TIER_GAP }))
+  const { svgNodes, svgMap, vb, bridgeBase } = useMemo(() => {
+    if (!nodes.length) return { svgNodes: [] as SvgNode[], svgMap: new Map<string, SvgNode>(), vb: '0 0 100 100', bridgeBase: 0 }
+    const maxTier = Math.max(...nodes.filter(n => n.branch !== 'bridge').map(n => n.tier), 0)
+    const bBase = (maxTier + 2) * TIER_GAP
+    const sn: SvgNode[] = nodes.map(n => ({
+      ...n,
+      sx: n.x * SCALE,
+      sy: n.branch === 'bridge' ? bBase + n.tier * TIER_GAP * 0.7 : n.tier * TIER_GAP,
+    }))
     const sm = new Map<string, SvgNode>()
     for (const n of sn) sm.set(n.id, n)
     const xs = sn.map(n => n.sx), ys = sn.map(n => n.sy)
-    return { svgNodes: sn, svgMap: sm,
+    return { svgNodes: sn, svgMap: sm, bridgeBase: bBase,
       vb: `${Math.min(...xs) - 40} ${Math.min(...ys) - 55} ${Math.max(...xs) - Math.min(...xs) + 220} ${Math.max(...ys) - Math.min(...ys) + 95}` }
   }, [nodes])
 
@@ -122,6 +128,17 @@ export default function MetroMap() {
             </g>
           )
         })}
+
+        {/* Separator strefy mostów */}
+        {bridgeBase > 0 && svgNodes.some(n => n.branch === 'bridge') && (() => {
+          const bc = def.branches.bridge?.color ?? '#fbbf24', sy = bridgeBase - TIER_GAP / 2
+          return <>
+            <line x1={-200} y1={sy} x2={200} y2={sy}
+              stroke={bc} strokeOpacity={0.12} strokeWidth={0.5} strokeDasharray="6 4" />
+            <text x={0} y={sy - 6} fill={bc} fontSize={8} textAnchor="middle" opacity={0.3}
+              className="pointer-events-none select-none uppercase">Mosty</text>
+          </>
+        })()}
 
         {/* Nagłówki kolumn */}
         {columns.map(col => {

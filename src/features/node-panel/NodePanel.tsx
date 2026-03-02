@@ -2,7 +2,7 @@ import { useTreeStore } from '../../shared/store'
 import { STATUS_LABEL as label, STATUS_COLOR as color } from '../../shared/types'
 
 export default function NodePanel() {
-  const { def, nodeMap, edges, selectedNodeId, nodeStates, content, progressNode } = useTreeStore()
+  const { def, nodeMap, edges, selectedNodeId, nodeStates, content, progressNode, setSelectedNode } = useTreeStore()
   const node = selectedNodeId ? nodeMap.get(selectedNodeId) : undefined
   if (!def || !node) return null
 
@@ -33,6 +33,24 @@ export default function NodePanel() {
           {state === 'available' ? 'Rozpocznij' : 'Opanowane!'}
         </button>
       )}
+
+      {state === 'mastered' && (() => {
+        const next = conns.map(c => nodeMap.get(c.from === node.id ? c.to : c.from))
+          .filter((n): n is NonNullable<typeof n> => !!n && nodeStates[n.id] === 'available')
+        return next.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-white/10">
+            <p className="text-[10px] text-white/30 uppercase tracking-wider mb-1">Co dalej?</p>
+            {next.map(n => (
+              <button key={n.id} onClick={() => setSelectedNode(n.id)}
+                className="w-full text-left text-xs py-1 px-1.5 rounded hover:bg-white/5 flex items-center gap-1.5">
+                <span className={`w-1.5 h-1.5 ${n.branch === 'bridge' ? 'rotate-45' : 'rounded-full'}`}
+                  style={{ background: def.branches[n.branch]?.color }} />
+                <span className="text-gray-300">{n.title}</span>
+              </button>
+            ))}
+          </div>
+        )
+      })()}
 
       {node.branch === 'bridge' && node.bridgeTo && (
         <p className="text-sm mt-1" style={{ color: def.branches.bridge?.color }}>→ {node.bridgeTo}</p>

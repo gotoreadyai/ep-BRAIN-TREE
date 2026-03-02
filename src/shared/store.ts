@@ -26,12 +26,17 @@ function initStates(nodes: { id: string; tier: number }[]) {
   return s
 }
 
-// Odblokuj sąsiadów opanowanego węzła
+// Odblokuj max 3 sąsiadów: progression > branch. Bridge bez limitu.
 function unlock(id: string, states: Record<string, NodeStatus>, edges: TreeEdge[]) {
+  const candidates: { id: string; prio: number }[] = []
   for (const e of edges) {
     const o = e.from === id ? e.to : e.to === id ? e.from : null
-    if (o && states[o] === 'locked') states[o] = 'available'
+    if (!o || states[o] !== 'locked') continue
+    if (e.type === 'bridge') { states[o] = 'available'; continue }
+    candidates.push({ id: o, prio: e.type === 'progression' ? 0 : 1 })
   }
+  candidates.sort((a, b) => a.prio - b.prio)
+  for (const c of candidates.slice(0, 3)) states[c.id] = 'available'
 }
 
 const PK = (id: string) => `progress:${id}`
