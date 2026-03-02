@@ -47,19 +47,23 @@ function galaxyLayout(nodes: PosNode[], edges: TreeEdge[], backbone: string,
   const activePos = activeId ? pos.get(activeId) : null
   const activeNeighbors = new Set(adj.get(activeId ?? '') ?? [])
 
-  /* Orbity — planety wokół słońc, powiązane mosty orbitują aktywny węzeł */
+  /* Orbity — planety wokół słońc, powiązane mosty orbitują swój najbliższy sąsiad */
   for (const [sid, planets] of sys) {
     const [sx, sy, sz] = pos.get(sid)!
     planets.forEach((p, i) => {
       const a = (i / planets.length) * Math.PI * 2
-      // Most przylatuje tylko jeśli jest sąsiadem aktywnego węzła lub sąsiada aktywnego
-      const connected = activeId && (activeNeighbors.has(p.id) ||
-        (adj.get(p.id) ?? []).some(nb => activeNeighbors.has(nb)))
-      if (p.branch === 'bridge' && activePos && connected) {
-        const [ax, ay, az] = activePos
-        pos.set(p.id, [ax + Math.cos(a) * 5, ay - 3 + Math.sin(a * 2) * 1, az + Math.sin(a) * 5])
+      if (p.branch === 'bridge' && activePos) {
+        // Znajdź najbliższego sąsiada mostu który ma pozycję (lektura/motyw, nie backbone)
+        const anchor = (adj.get(p.id) ?? []).find(nb => pos.has(nb) && activeNeighbors.has(nb))
+          ?? (activeNeighbors.has(p.id) ? activeId : null)
+        if (anchor) {
+          const [ax, ay, az] = pos.get(anchor)!
+          pos.set(p.id, [ax + Math.cos(a) * 3, ay - 2 + Math.sin(a * 2) * 0.8, az + Math.sin(a) * 3])
+        } else {
+          pos.set(p.id, [sx + Math.cos(a) * 7, sy + Math.sin(a * 2) * 1.5, sz + Math.sin(a) * 7])
+        }
       } else {
-        const r = p.branch === 'bridge' ? 7 : 4
+        const r = 4
         pos.set(p.id, [sx + Math.cos(a) * r, sy + Math.sin(a * 2) * 1.5, sz + Math.sin(a) * r])
       }
     })
