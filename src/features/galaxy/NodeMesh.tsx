@@ -39,7 +39,7 @@ export default function NodeMesh({ node, color, isBackbone, selected, proximity,
         </mesh>
       </Billboard>
 
-      {(selected || isBackbone) && state !== 'locked' && (
+      {(isBackbone || (selected && state !== 'locked')) && (
         <Html center position={[0, size + 0.8, 0]} style={{ pointerEvents: 'none', opacity: selected ? 1 : proximity * 0.7 }}>
           <div className="text-[11px] text-white bg-black/90 px-2 py-1 rounded max-w-[200px] text-center whitespace-nowrap">
             <div className={isBackbone && !selected ? 'text-[10px] font-semibold' : 'font-bold'}>{node.title}</div>
