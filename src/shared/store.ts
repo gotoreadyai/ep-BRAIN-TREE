@@ -51,7 +51,6 @@ interface TreeStore {
   selectedNodeId: string | null
   connectedIds: Set<string> | null
   nodeStates: Record<string, NodeStatus>
-  reviewDue: Set<string>
   content: Record<string, ContentItem[]>
   extensions: PackEntry[]
   loadedExtensions: Set<string>
@@ -69,7 +68,7 @@ export const useTreeStore = create<TreeStore>((set) => ({
   def: null, nodes: [], edges: [], columns: [],
   nodeMap: new Map(), backbone: '',
   hoveredNodeId: null, selectedNodeId: null, connectedIds: null,
-  nodeStates: {}, reviewDue: new Set(), content: {},
+  nodeStates: {}, content: {},
   extensions: [], loadedExtensions: new Set(),
 
   load: (def) => {
@@ -78,8 +77,7 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
     const saved = localStorage.getItem(PK(def.id))
     const nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes)
-    set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates,
-      reviewDue: new Set(), content: {},
+    set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates, content: {},
       selectedNodeId: null, hoveredNodeId: null, connectedIds: null })
   },
 

@@ -9,11 +9,11 @@ import type { NodeStatus } from '../../shared/types'
 interface Props {
   node: PosNode; color: string; isBackbone: boolean
   hovered: boolean; selected: boolean; dimmed: boolean
-  state: NodeStatus; reviewDue: boolean
+  state: NodeStatus
   onHover: (id: string | null) => void; onClick: (id: string) => void
 }
 
-export default function NodeMesh({ node, color, isBackbone, hovered, selected, dimmed, state, reviewDue, onHover, onClick }: Props) {
+export default function NodeMesh({ node, color, isBackbone, hovered, selected, dimmed, state, onHover, onClick }: Props) {
   const isBridge = node.branch === 'bridge'
   const size = isBackbone ? 0.7 : isBridge ? 0.3 : 0.45
   const scale = (state === 'locked' ? 0.4 : 1) * (hovered ? 1.4 : selected ? 1.2 : 1)
@@ -24,9 +24,7 @@ export default function NodeMesh({ node, color, isBackbone, hovered, selected, d
   const matRef = useRef<MeshStandardMaterial>(null)
   useFrame(({ clock }) => {
     if (!matRef.current || dimmed) return
-    if (reviewDue && state === 'mastered')
-      matRef.current.emissiveIntensity = 0.5 + Math.sin(clock.elapsedTime * 2.5) * 0.4
-    else if (state === 'in_progress')
+    if (state === 'in_progress')
       matRef.current.emissiveIntensity = 0.2 + Math.sin(clock.elapsedTime * 1.5) * 0.15
   })
 

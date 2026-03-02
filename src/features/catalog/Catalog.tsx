@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { PackEntry } from '../../shared/types'
-import { fetchCatalog } from '../../shared/github'
+import { fetchCatalog, ORG } from '../../shared/github'
 import { cacheGet, cacheSet } from '../../shared/cache'
-
-const ORG = 'gniazdo-wiedzy'
 
 export default function Catalog() {
   const [packs, setPacks] = useState<PackEntry[]>([])

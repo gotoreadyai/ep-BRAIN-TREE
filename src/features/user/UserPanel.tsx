@@ -1,6 +1,6 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTreeStore } from '../../shared/store'
-import type { NodeStatus } from '../../shared/types'
+import { STATUS_COLOR, STATUS_LABEL, type NodeStatus } from '../../shared/types'
 
 export default function UserPanel() {
   const { def, nodes, nodeStates, resetProgress } = useTreeStore()
@@ -26,10 +26,9 @@ export default function UserPanel() {
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <Stat n={counts.mastered} label="Opanowane" color="#22c55e" />
-          <Stat n={counts.in_progress} label="W trakcie" color="#eab308" />
-          <Stat n={counts.available} label="Dostępne" color="#3b82f6" />
-          <Stat n={counts.locked} label="Zablokowane" color="#6b7280" />
+          {(Object.keys(counts) as NodeStatus[]).map(s => (
+            <Stat key={s} n={counts[s]} label={STATUS_LABEL[s]} color={STATUS_COLOR[s]} />
+          ))}
         </div>
 
         <div className="flex gap-2 text-xs">

@@ -98,7 +98,7 @@ function EdgeLine({ edge, nodeMap, dimmed, bridgeColor, nodeStates }: {
 
 export default function TreeScene() {
   const { def, nodes, edges, backbone, hoveredNodeId, selectedNodeId,
-    connectedIds, setHoveredNode, setSelectedNode, nodeStates, reviewDue } = useTreeStore()
+    connectedIds, setHoveredNode, setSelectedNode, nodeStates } = useTreeStore()
 
   const { gNodes, gMap, center } = useMemo(() => {
     const gn = galaxyLayout(nodes, edges, backbone)
@@ -135,7 +135,6 @@ export default function TreeScene() {
           selected={selectedNodeId === node.id}
           dimmed={!!connectedIds && !connectedIds.has(node.id)}
           state={nodeStates[node.id] ?? 'locked'}
-          reviewDue={reviewDue.has(node.id)}
           onHover={setHoveredNode} onClick={setSelectedNode} />
       ))}
 

@@ -1,5 +1,6 @@
 import type { PackEntry, PackType } from './types'
 
+export const ORG = 'gniazdo-wiedzy'
 const SEARCH = 'https://api.github.com/search/repositories'
 const RAW = 'https://raw.githubusercontent.com'
 const PACK_TYPES: PackType[] = ['paczka-bazowa', 'paczka-rozszerzenie', 'paczka-kontentowa']

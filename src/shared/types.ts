@@ -32,6 +32,13 @@ export interface SkillTreeDef {
 
 export type NodeStatus = 'mastered' | 'in_progress' | 'available' | 'locked'
 
+export const STATUS_LABEL: Record<NodeStatus, string> = {
+  mastered: 'Opanowane', in_progress: 'W trakcie', available: 'Dostępne', locked: 'Zablokowane'
+}
+export const STATUS_COLOR: Record<NodeStatus, string> = {
+  mastered: '#22c55e', in_progress: '#eab308', available: '#3b82f6', locked: '#6b7280'
+}
+
 // --- Paczki ---
 
 export interface TreePack {

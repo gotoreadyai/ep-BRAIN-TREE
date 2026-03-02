@@ -9,7 +9,7 @@ interface SvgNode extends PosNode { sx: number; sy: number }
 
 export default function MetroMap() {
   const { def, nodes, edges, columns, hoveredNodeId, selectedNodeId, connectedIds, backbone,
-    setHoveredNode, setSelectedNode, nodeStates, reviewDue } = useTreeStore()
+    setHoveredNode, setSelectedNode, nodeStates } = useTreeStore()
 
   const { svgNodes, svgMap, vb } = useMemo(() => {
     if (!nodes.length) return { svgNodes: [] as SvgNode[], svgMap: new Map<string, SvgNode>(), vb: '0 0 100 100' }
@@ -70,7 +70,6 @@ export default function MetroMap() {
         {svgNodes.map(node => {
           const state = st(node.id)
           const dimmed = dim(node.id)
-          const review = reviewDue.has(node.id)
           const color = def.branches[node.branch]?.color ?? '#666'
           const isBack = node.branch === backbone
           const isBridge = node.branch === 'bridge'
@@ -81,10 +80,6 @@ export default function MetroMap() {
 
           return (
             <g key={node.id}>
-              {review && !dimmed && state === 'mastered' && (
-                <circle cx={node.sx} cy={node.sy} r={r + 5}
-                  fill="none" stroke={color} strokeWidth={1.5} className="metro-pulse" />
-              )}
               {state === 'in_progress' && !dimmed && (
                 <circle cx={node.sx} cy={node.sy} r={r + 4}
                   fill="none" stroke={color} strokeWidth={1} className="metro-progress" />

@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTreeStore } from '../../shared/store'
-import { fetchCatalog, fetchPack } from '../../shared/github'
+import { fetchCatalog, fetchPack, ORG } from '../../shared/github'
 import { cacheGet, cacheSet } from '../../shared/cache'
 import type { PackEntry, TreePack } from '../../shared/types'
 import { Puzzle } from 'lucide-react'
-
-const ORG = 'gniazdo-wiedzy'
 
 export default function ExtensionShelf() {
   const { def, extensions, loadedExtensions, setExtensions, loadExtension } = useTreeStore()
@@ -24,6 +22,7 @@ export default function ExtensionShelf() {
       } catch {
         const cached = await cacheGet<PackEntry[]>(key)
         if (cached) setExtensions(cached)
+        else alert('Nie udało się pobrać listy rozszerzeń')
       }
     })()
   }, [def?.id, setExtensions])
@@ -37,20 +36,20 @@ export default function ExtensionShelf() {
       const pack = await fetchPack<TreePack>(ext.org, ext.repo)
       await cacheSet(`${ext.org}/${ext.repo}`, pack)
       loadExtension(pack, ext.repo)
-    } catch { /* cicho — student spróbuje ponownie */ }
+    } catch { alert('Nie udało się załadować rozszerzenia') }
     setLoading(null)
   }
 
   return (
-    <div className="absolute top-14 right-3 z-10">
+    <div className="relative">
       <button onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-purple-500/20 text-purple-300 text-xs hover:bg-purple-500/30 transition-colors">
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-purple-500/20 text-purple-300 text-xs hover:bg-purple-500/30 transition-colors">
         <Puzzle size={12} />
-        <span>{available.length} rozszerz.</span>
+        <span>{available.length}</span>
       </button>
 
       {open && (
-        <div className="mt-1 w-64 bg-black/90 backdrop-blur-sm rounded-lg p-2 space-y-2">
+        <div className="absolute right-0 top-full mt-1 w-64 bg-black/90 backdrop-blur-sm rounded-lg p-2 space-y-2 z-20">
           {available.map(ext => (
             <div key={ext.repo} className="text-xs">
               <p className="text-white font-medium">{ext.description || ext.repo}</p>

@@ -1,20 +1,12 @@
 import { useTreeStore } from '../../shared/store'
-import type { NodeStatus } from '../../shared/types'
-
-const label: Record<NodeStatus, string> = {
-  mastered: 'Opanowane', in_progress: 'W trakcie', available: 'Dostępne', locked: 'Zablokowane'
-}
-const color: Record<NodeStatus, string> = {
-  mastered: '#22c55e', in_progress: '#eab308', available: '#3b82f6', locked: '#6b7280'
-}
+import { STATUS_LABEL as label, STATUS_COLOR as color } from '../../shared/types'
 
 export default function NodePanel() {
-  const { def, nodeMap, edges, selectedNodeId, nodeStates, reviewDue, content, progressNode } = useTreeStore()
+  const { def, nodeMap, edges, selectedNodeId, nodeStates, content, progressNode } = useTreeStore()
   const node = selectedNodeId ? nodeMap.get(selectedNodeId) : undefined
   if (!def || !node) return null
 
   const state = nodeStates[node.id] ?? 'locked'
-  const review = reviewDue.has(node.id)
   const branch = def.branches[node.branch]
   const conns = edges.filter(e => e.from === node.id || e.to === node.id)
   const items = content[node.id] ?? []
@@ -32,9 +24,6 @@ export default function NodePanel() {
         <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/5" style={{ color: color[state] }}>
           {label[state]}
         </span>
-        {review && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400">Do powtórki</span>
-        )}
       </div>
 
       {(state === 'available' || state === 'in_progress') && (

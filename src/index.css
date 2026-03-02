@@ -4,9 +4,8 @@
 
 body { background: #0a0a0f; }
 
-@keyframes metro-pulse {
+@keyframes metro-progress {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 0; }
 }
-.metro-pulse { animation: metro-pulse 2s ease-in-out infinite; }
-.metro-progress { animation: metro-pulse 3s ease-in-out infinite; }
+.metro-progress { animation: metro-progress 3s ease-in-out infinite; }
