@@ -1,22 +1,18 @@
-import { useEffect } from 'react'
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom'
 import { useTreeStore } from './shared/store'
 import TreeScene from './features/galaxy/TreeScene'
 import MetroMap from './features/metro/MetroMap'
 import NodePanel from './features/node-panel/NodePanel'
+import Catalog from './features/catalog/Catalog'
+import Loader from './features/loader/Loader'
 import { Map, Sparkles } from 'lucide-react'
-
-import polskiMatura from './shared/skill-tree-data'
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-1.5 px-3 py-1 rounded transition-colors text-xs ${isActive ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/50'}`
 
-export default function App() {
-  const { def, nodes, edges, load } = useTreeStore()
-
-  useEffect(() => { load(polskiMatura) }, [load])
-
-  if (!def) return null
+function TreeShell() {
+  const { def, nodes, edges } = useTreeStore()
+  if (!def) return <Navigate to="/" replace />
 
   return (
     <div className="h-screen w-screen flex flex-col select-none">
@@ -33,9 +29,9 @@ export default function App() {
 
       <main className="flex-1 relative min-h-0">
         <Routes>
-          <Route path="/metro" element={<MetroMap />} />
-          <Route path="/galaxy" element={<TreeScene />} />
-          <Route path="*" element={<Navigate to="/metro" replace />} />
+          <Route path="metro" element={<MetroMap />} />
+          <Route path="galaxy" element={<TreeScene />} />
+          <Route path="*" element={<Navigate to="metro" replace />} />
         </Routes>
 
         <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5 pointer-events-none">
@@ -54,5 +50,15 @@ export default function App() {
         <NodePanel />
       </main>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Catalog />} />
+      <Route path="/load/:org/:repo" element={<Loader />} />
+      <Route path="/*" element={<TreeShell />} />
+    </Routes>
   )
 }

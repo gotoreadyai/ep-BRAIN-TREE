@@ -31,3 +31,37 @@ export interface SkillTreeDef {
 }
 
 export type NodeStatus = 'mastered' | 'in_progress' | 'available' | 'locked'
+
+// --- Paczki ---
+
+export interface TreePack {
+  id: string
+  baseId: string
+  title: string
+  nodes: TreeNode[]
+  edges: TreeEdge[]
+}
+
+export interface ContentItem {
+  type: 'definition' | 'flashcard' | 'question'
+  text: string
+  answer?: string
+}
+
+export interface ContentPack {
+  id: string
+  baseId: string
+  title: string
+  content: Record<string, ContentItem[]>
+}
+
+export type PackType = 'paczka-bazowa' | 'paczka-rozszerzenie' | 'paczka-kontentowa'
+
+export interface PackEntry {
+  org: string
+  repo: string
+  description: string
+  topics: string[]
+  packType: PackType
+  subject: string
+}

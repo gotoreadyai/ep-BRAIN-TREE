@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { SkillTreeDef, TreeEdge, NodeStatus } from './types'
+import type { SkillTreeDef, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus } from './types'
 import { buildLayout, type PosNode, type ColumnHeader } from './graph'
 
 // Sąsiedzi węzła (do dimming)
@@ -25,6 +25,16 @@ function demoStates(nodes: { id: string; tier: number }[]) {
   return s
 }
 
+// Scal rozszerzenie z bazą
+function merge(base: SkillTreeDef, ext: TreePack): SkillTreeDef {
+  const ids = new Set(base.nodes.map(n => n.id))
+  return {
+    ...base,
+    nodes: [...base.nodes, ...ext.nodes.filter(n => !ids.has(n.id))],
+    edges: [...base.edges, ...ext.edges],
+  }
+}
+
 interface TreeStore {
   def: SkillTreeDef | null
   nodes: PosNode[]
@@ -37,7 +47,10 @@ interface TreeStore {
   connectedIds: Set<string> | null
   nodeStates: Record<string, NodeStatus>
   reviewDue: Set<string>
+  content: Record<string, ContentItem[]>
   load: (def: SkillTreeDef) => void
+  loadExtension: (pack: TreePack) => void
+  loadContent: (pack: ContentPack) => void
   setHoveredNode: (id: string | null) => void
   setSelectedNode: (id: string | null) => void
 }
@@ -46,20 +59,34 @@ export const useTreeStore = create<TreeStore>((set) => ({
   def: null, nodes: [], edges: [], columns: [],
   nodeMap: new Map(), backbone: '',
   hoveredNodeId: null, selectedNodeId: null, connectedIds: null,
-  nodeStates: {}, reviewDue: new Set(),
+  nodeStates: {}, reviewDue: new Set(), content: {},
 
   load: (def) => {
     const { nodes, edges, columns } = buildLayout(def)
     const nodeMap = new Map(nodes.map(n => [n.id, n]))
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
     const nodeStates = demoStates(def.nodes)
-    const reviewDue = new Set(
-      ['antygona', 'biblia', 'makbet', 'lament', 'm-bunt', 'g-tragedia']
-        .filter(id => nodeStates[id] === 'mastered')
-    )
-    set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates, reviewDue,
+    set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates,
+      reviewDue: new Set(), content: {},
       selectedNodeId: null, hoveredNodeId: null, connectedIds: null })
   },
+
+  loadExtension: (pack) => set((s) => {
+    if (!s.def) return s
+    const merged = merge(s.def, pack)
+    const { nodes, edges, columns } = buildLayout(merged)
+    const nodeMap = new Map(nodes.map(n => [n.id, n]))
+    return { def: merged, nodes, edges, columns, nodeMap,
+      nodeStates: demoStates(merged.nodes), content: s.content,
+      selectedNodeId: null, hoveredNodeId: null, connectedIds: null }
+  }),
+
+  loadContent: (pack) => set((s) => {
+    const content = { ...s.content }
+    for (const [nodeId, items] of Object.entries(pack.content))
+      content[nodeId] = [...(content[nodeId] ?? []), ...items]
+    return { content }
+  }),
 
   setHoveredNode: (id) => set((s) => ({
     hoveredNodeId: id,

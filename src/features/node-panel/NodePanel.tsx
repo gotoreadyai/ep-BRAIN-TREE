@@ -9,7 +9,7 @@ const color: Record<NodeStatus, string> = {
 }
 
 export default function NodePanel() {
-  const { def, nodeMap, edges, selectedNodeId, nodeStates, reviewDue } = useTreeStore()
+  const { def, nodeMap, edges, selectedNodeId, nodeStates, reviewDue, content } = useTreeStore()
   const node = selectedNodeId ? nodeMap.get(selectedNodeId) : undefined
   if (!def || !node) return null
 
@@ -17,6 +17,7 @@ export default function NodePanel() {
   const review = reviewDue.has(node.id)
   const branch = def.branches[node.branch]
   const conns = edges.filter(e => e.from === node.id || e.to === node.id)
+  const items = content[node.id] ?? []
 
   return (
     <div className="absolute top-3 right-3 w-64 bg-black/80 backdrop-blur-sm rounded-lg p-3 text-white">
@@ -60,6 +61,17 @@ export default function NodePanel() {
               </div>
             ) : null
           })}
+        </div>
+      )}
+      {items.length > 0 && (
+        <div className="mt-2 pt-2 border-t border-white/10 space-y-1.5">
+          {items.map((item, i) => (
+            <div key={i} className="text-xs">
+              <span className="text-[9px] uppercase tracking-wider text-white/20">{item.type}</span>
+              <p className="text-gray-300">{item.text}</p>
+              {item.answer && <p className="text-gray-500 text-[11px] mt-0.5">→ {item.answer}</p>}
+            </div>
+          ))}
         </div>
       )}
     </div>
