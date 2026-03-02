@@ -39,12 +39,12 @@ export default function NodeMesh({ node, color, isBackbone, selected, proximity,
         </mesh>
       </Billboard>
 
-      {selected && state !== 'locked' && (
-        <Html center position={[0, size + 0.8, 0]} style={{ pointerEvents: 'none' }}>
-          <div className="text-[11px] text-white bg-black/90 px-2 py-1 rounded max-w-[200px] text-center">
-            <div className="font-bold">{node.title}</div>
-            {node.description && <div className="text-gray-400 text-[10px] mt-0.5">{node.description}</div>}
-            {node.branch === 'bridge' && node.bridgeTo && <div className="text-[9px] mt-0.5" style={{ color }}>→ {node.bridgeTo}</div>}
+      {(selected || isBackbone) && state !== 'locked' && (
+        <Html center position={[0, size + 0.8, 0]} style={{ pointerEvents: 'none', opacity: selected ? 1 : proximity * 0.7 }}>
+          <div className="text-[11px] text-white bg-black/90 px-2 py-1 rounded max-w-[200px] text-center whitespace-nowrap">
+            <div className={isBackbone && !selected ? 'text-[10px] font-semibold' : 'font-bold'}>{node.title}</div>
+            {selected && node.description && <div className="text-gray-400 text-[10px] mt-0.5">{node.description}</div>}
+            {selected && node.branch === 'bridge' && node.bridgeTo && <div className="text-[9px] mt-0.5" style={{ color }}>→ {node.bridgeTo}</div>}
           </div>
         </Html>
       )}
