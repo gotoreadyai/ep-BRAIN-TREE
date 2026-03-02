@@ -42,17 +42,20 @@ function galaxyLayout(nodes: PosNode[], edges: TreeEdge[], backbone: string,
     sys.get(sun)!.push(n)
   }
 
-  /* Znajdź aktywny węzeł (selected lub in_progress) do przyciągania mostów */
+  /* Znajdź aktywny węzeł i jego sąsiadów (mosty przylatują tylko powiązane) */
   const activeId = selectedId ?? Object.keys(nodeStates).find(k => nodeStates[k] === 'in_progress') ?? null
   const activePos = activeId ? pos.get(activeId) : null
+  const activeNeighbors = new Set(adj.get(activeId ?? '') ?? [])
 
-  /* Orbity — planety wokół słońc, mosty orbitują aktywny węzeł */
+  /* Orbity — planety wokół słońc, powiązane mosty orbitują aktywny węzeł */
   for (const [sid, planets] of sys) {
     const [sx, sy, sz] = pos.get(sid)!
     planets.forEach((p, i) => {
       const a = (i / planets.length) * Math.PI * 2
-      if (p.branch === 'bridge' && activePos) {
-        // Most orbituje aktywny węzeł
+      // Most przylatuje tylko jeśli jest sąsiadem aktywnego węzła lub sąsiada aktywnego
+      const connected = activeId && (activeNeighbors.has(p.id) ||
+        (adj.get(p.id) ?? []).some(nb => activeNeighbors.has(nb)))
+      if (p.branch === 'bridge' && activePos && connected) {
         const [ax, ay, az] = activePos
         pos.set(p.id, [ax + Math.cos(a) * 5, ay - 3 + Math.sin(a * 2) * 1, az + Math.sin(a) * 5])
       } else {
