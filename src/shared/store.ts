@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { SkillTreeDef, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus } from './types'
+import type { SkillTreeDef, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus, PackEntry } from './types'
 import { buildLayout, type PosNode, type ColumnHeader } from './graph'
 
 // Sąsiedzi węzła (do dimming)
@@ -48,9 +48,12 @@ interface TreeStore {
   nodeStates: Record<string, NodeStatus>
   reviewDue: Set<string>
   content: Record<string, ContentItem[]>
+  extensions: PackEntry[]
+  loadedExtensions: Set<string>
   load: (def: SkillTreeDef) => void
-  loadExtension: (pack: TreePack) => void
+  loadExtension: (pack: TreePack, repo: string) => void
   loadContent: (pack: ContentPack) => void
+  setExtensions: (exts: PackEntry[]) => void
   setHoveredNode: (id: string | null) => void
   setSelectedNode: (id: string | null) => void
 }
@@ -60,6 +63,7 @@ export const useTreeStore = create<TreeStore>((set) => ({
   nodeMap: new Map(), backbone: '',
   hoveredNodeId: null, selectedNodeId: null, connectedIds: null,
   nodeStates: {}, reviewDue: new Set(), content: {},
+  extensions: [], loadedExtensions: new Set(),
 
   load: (def) => {
     const { nodes, edges, columns } = buildLayout(def)
@@ -71,13 +75,15 @@ export const useTreeStore = create<TreeStore>((set) => ({
       selectedNodeId: null, hoveredNodeId: null, connectedIds: null })
   },
 
-  loadExtension: (pack) => set((s) => {
+  loadExtension: (pack, repo) => set((s) => {
     if (!s.def) return s
     const merged = merge(s.def, pack)
     const { nodes, edges, columns } = buildLayout(merged)
     const nodeMap = new Map(nodes.map(n => [n.id, n]))
+    const loadedExtensions = new Set(s.loadedExtensions)
+    loadedExtensions.add(repo)
     return { def: merged, nodes, edges, columns, nodeMap,
-      nodeStates: demoStates(merged.nodes), content: s.content,
+      nodeStates: demoStates(merged.nodes), content: s.content, loadedExtensions,
       selectedNodeId: null, hoveredNodeId: null, connectedIds: null }
   }),
 
@@ -87,6 +93,8 @@ export const useTreeStore = create<TreeStore>((set) => ({
       content[nodeId] = [...(content[nodeId] ?? []), ...items]
     return { content }
   }),
+
+  setExtensions: (exts) => set({ extensions: exts }),
 
   setHoveredNode: (id) => set((s) => ({
     hoveredNodeId: id,

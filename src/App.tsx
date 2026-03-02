@@ -3,6 +3,7 @@ import { useTreeStore } from './shared/store'
 import TreeScene from './features/galaxy/TreeScene'
 import MetroMap from './features/metro/MetroMap'
 import NodePanel from './features/node-panel/NodePanel'
+import ExtensionShelf from './features/extensions/ExtensionShelf'
 import Catalog from './features/catalog/Catalog'
 import Loader from './features/loader/Loader'
 import { Map, Sparkles } from 'lucide-react'
@@ -47,6 +48,7 @@ function TreeShell() {
           })}
         </div>
 
+        <ExtensionShelf />
         <NodePanel />
       </main>
     </div>
