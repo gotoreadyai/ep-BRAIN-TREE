@@ -1,8 +1,7 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
-import { AdditiveBlending } from 'three'
-import type { MeshStandardMaterial } from 'three'
+import { Html, Billboard } from '@react-three/drei'
+import type { MeshBasicMaterial } from 'three'
 import type { PosNode } from '../../shared/graph'
 import type { NodeStatus } from '../../shared/types'
 
@@ -13,55 +12,39 @@ interface Props {
 }
 
 export default function NodeMesh({ node, color, isBackbone, selected, proximity, state, onClick }: Props) {
-  const isBridge = node.branch === 'bridge'
-  const size = isBackbone ? 0.7 : isBridge ? 0.3 : 0.45
+  const size = isBackbone ? 0.7 : node.branch === 'bridge' ? 0.3 : 0.45
   const scale = (state === 'locked' ? 0.4 : 1) * (selected ? 1.2 : 1)
   const stateOp = state === 'locked' ? 0.1 : state === 'available' ? 0.35 : 1
-  const opacity = stateOp * proximity
-  const additive = state === 'mastered' && proximity > 0.5
-
-  const matRef = useRef<MeshStandardMaterial>(null)
-  useFrame(({ clock }) => {
-    if (!matRef.current || proximity < 0.5) return
-    if (state === 'in_progress')
-      matRef.current.emissiveIntensity = 0.2 + Math.sin(clock.elapsedTime * 1.5) * 0.15
-  })
-
-  const baseEmissive = selected ? 0.8
-    : state === 'mastered' ? 0.3 : state === 'in_progress' ? 0.2 : 0
   const ringOp = (state === 'locked' ? 0.1 : state === 'available' ? 0.25 : state === 'in_progress' ? 0.4 : 0.6) * proximity
+
+  const matRef = useRef<MeshBasicMaterial>(null)
+  useFrame(({ clock }) => {
+    if (!matRef.current || proximity < 0.5 || state !== 'in_progress') return
+    matRef.current.opacity = (0.7 + Math.sin(clock.elapsedTime * 1.5) * 0.3) * proximity
+  })
 
   return (
     <group position={[node.x, node.y, node.z]}>
-      {/* Outline ring — zawsze widoczny */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} scale={scale}>
-        <torusGeometry args={[size * 1.4, 0.02, 8, 32]} />
-        <meshBasicMaterial color={color} transparent opacity={ringOp} />
-      </mesh>
+      <Billboard>
+        {/* Outline ring — zawsze widoczny */}
+        <mesh scale={scale}>
+          <ringGeometry args={[size * 1.1, size * 1.25, 32]} />
+          <meshBasicMaterial color={color} transparent opacity={ringOp} />
+        </mesh>
 
-      <mesh scale={scale}
-        rotation={isBridge ? [Math.PI / 4, 0, Math.PI / 4] : undefined}
-        onClick={(e) => { e.stopPropagation(); onClick(node.id) }}>
-        {isBridge
-          ? <boxGeometry args={[size, size, size]} />
-          : <sphereGeometry args={[size, 12, 12]} />}
-        <meshStandardMaterial ref={matRef}
-          color={color} emissive={color} emissiveIntensity={baseEmissive}
-          transparent opacity={opacity}
-          blending={additive ? AdditiveBlending : undefined}
-          depthWrite={!additive} />
-      </mesh>
-
-      {isBackbone && state === 'mastered' && proximity > 0.5 && (
-        <pointLight color={color} intensity={0.8} distance={12} />
-      )}
+        {/* Wypełnienie — disc */}
+        <mesh scale={scale} onClick={(e) => { e.stopPropagation(); onClick(node.id) }}>
+          <circleGeometry args={[size, 32]} />
+          <meshBasicMaterial ref={matRef} color={color} transparent opacity={stateOp * proximity} />
+        </mesh>
+      </Billboard>
 
       {selected && state !== 'locked' && (
         <Html center position={[0, size + 0.8, 0]} style={{ pointerEvents: 'none' }}>
           <div className="text-[11px] text-white bg-black/90 px-2 py-1 rounded max-w-[200px] text-center">
             <div className="font-bold">{node.title}</div>
             {node.description && <div className="text-gray-400 text-[10px] mt-0.5">{node.description}</div>}
-            {isBridge && node.bridgeTo && <div className="text-[9px] mt-0.5" style={{ color }}>→ {node.bridgeTo}</div>}
+            {node.branch === 'bridge' && node.bridgeTo && <div className="text-[9px] mt-0.5" style={{ color }}>→ {node.bridgeTo}</div>}
           </div>
         </Html>
       )}
