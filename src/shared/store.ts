@@ -47,7 +47,6 @@ interface TreeStore {
   columns: ColumnHeader[]
   nodeMap: Map<string, PosNode>
   backbone: string
-  hoveredNodeId: string | null
   selectedNodeId: string | null
   connectedIds: Set<string> | null
   nodeStates: Record<string, NodeStatus>
@@ -60,14 +59,13 @@ interface TreeStore {
   progressNode: (id: string) => void
   resetProgress: () => void
   setExtensions: (exts: PackEntry[]) => void
-  setHoveredNode: (id: string | null) => void
   setSelectedNode: (id: string | null) => void
 }
 
 export const useTreeStore = create<TreeStore>((set) => ({
   def: null, nodes: [], edges: [], columns: [],
   nodeMap: new Map(), backbone: '',
-  hoveredNodeId: null, selectedNodeId: null, connectedIds: null,
+  selectedNodeId: null, connectedIds: null,
   nodeStates: {}, content: {},
   extensions: [], loadedExtensions: new Set(),
 
@@ -78,7 +76,7 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const saved = localStorage.getItem(PK(def.id))
     const nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes)
     set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates, content: {},
-      selectedNodeId: null, hoveredNodeId: null, connectedIds: null })
+      selectedNodeId: null, connectedIds: null })
   },
 
   loadExtension: (pack, repo) => set((s) => {
@@ -98,7 +96,7 @@ export const useTreeStore = create<TreeStore>((set) => ({
     localStorage.setItem(PK(merged.id), JSON.stringify(nodeStates))
     return { def: merged, nodes, edges, columns, nodeMap, nodeStates,
       content: s.content, loadedExtensions,
-      selectedNodeId: null, hoveredNodeId: null, connectedIds: null }
+      selectedNodeId: null, connectedIds: null }
   }),
 
   loadContent: (pack) => set((s) => {
@@ -128,12 +126,8 @@ export const useTreeStore = create<TreeStore>((set) => ({
 
   setExtensions: (exts) => set({ extensions: exts }),
 
-  setHoveredNode: (id) => set((s) => ({
-    hoveredNodeId: id,
-    connectedIds: connected(id ?? s.selectedNodeId, s.edges),
-  })),
   setSelectedNode: (id) => set((s) => {
     const sel = s.selectedNodeId === id ? null : id
-    return { selectedNodeId: sel, connectedIds: connected(s.hoveredNodeId ?? sel, s.edges) }
+    return { selectedNodeId: sel, connectedIds: connected(sel, s.edges) }
   }),
 }))

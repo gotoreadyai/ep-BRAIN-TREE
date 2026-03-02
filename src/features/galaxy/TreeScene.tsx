@@ -97,8 +97,8 @@ function EdgeLine({ edge, nodeMap, dimmed, bridgeColor, nodeStates }: {
 }
 
 export default function TreeScene() {
-  const { def, nodes, edges, backbone, hoveredNodeId, selectedNodeId,
-    connectedIds, setHoveredNode, setSelectedNode, nodeStates } = useTreeStore()
+  const { def, nodes, edges, backbone, selectedNodeId,
+    connectedIds, setSelectedNode, nodeStates } = useTreeStore()
 
   const { gNodes, gMap, center } = useMemo(() => {
     const gn = galaxyLayout(nodes, edges, backbone)
@@ -131,11 +131,10 @@ export default function TreeScene() {
         <NodeMesh key={node.id} node={node}
           color={def.branches[node.branch]?.color ?? '#6b7280'}
           isBackbone={node.branch === backbone}
-          hovered={hoveredNodeId === node.id}
           selected={selectedNodeId === node.id}
           dimmed={!!connectedIds && !connectedIds.has(node.id)}
           state={nodeStates[node.id] ?? 'locked'}
-          onHover={setHoveredNode} onClick={setSelectedNode} />
+          onClick={setSelectedNode} />
       ))}
 
       <CameraRig target={camTarget} selected={!!selectedNodeId} />

@@ -8,8 +8,8 @@ const TIER_GAP = 52
 interface SvgNode extends PosNode { sx: number; sy: number }
 
 export default function MetroMap() {
-  const { def, nodes, edges, columns, hoveredNodeId, selectedNodeId, connectedIds, backbone,
-    setHoveredNode, setSelectedNode, nodeStates } = useTreeStore()
+  const { def, nodes, edges, columns, selectedNodeId, connectedIds, backbone,
+    setSelectedNode, nodeStates } = useTreeStore()
 
   const { svgNodes, svgMap, vb } = useMemo(() => {
     if (!nodes.length) return { svgNodes: [] as SvgNode[], svgMap: new Map<string, SvgNode>(), vb: '0 0 100 100' }
@@ -74,7 +74,6 @@ export default function MetroMap() {
           const isBack = node.branch === backbone
           const isBridge = node.branch === 'bridge'
           const r = isBack ? 5 : 3.5
-          const hov = hoveredNodeId === node.id
           const sel = selectedNodeId === node.id
           const op = dimmed ? 0.1 : state === 'locked' ? 0.15 : state === 'available' ? 0.45 : 1
 
@@ -84,7 +83,7 @@ export default function MetroMap() {
                 <circle cx={node.sx} cy={node.sy} r={r + 4}
                   fill="none" stroke={color} strokeWidth={1} className="metro-progress" />
               )}
-              {(hov || sel) && (
+              {sel && (
                 <circle cx={node.sx} cy={node.sy} r={r + 8} fill={color} fillOpacity={0.08} />
               )}
 
@@ -111,8 +110,6 @@ export default function MetroMap() {
 
               <circle cx={node.sx} cy={node.sy} r={14}
                 fill="transparent" className="cursor-pointer"
-                onMouseEnter={() => setHoveredNode(node.id)}
-                onMouseLeave={() => setHoveredNode(null)}
                 onClick={() => setSelectedNode(node.id)} />
 
               {state !== 'locked' && (
