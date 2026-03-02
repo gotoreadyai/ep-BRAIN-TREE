@@ -8,11 +8,12 @@ import { useTreeStore } from '../../shared/store'
 export default function Loader() {
   const { org, repo } = useParams<{ org: string; repo: string }>()
   const load = useTreeStore(s => s.load)
-  const def = useTreeStore(s => s.def)
+  const [ready, setReady] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     if (!org || !repo) return
+    setReady(false)
     const key = `${org}/${repo}`
     ;(async () => {
       try {
@@ -22,12 +23,13 @@ export default function Loader() {
       } catch {
         const cached = await cacheGet<SkillTreeDef>(key)
         if (cached) load(cached)
-        else setError('Nie udało się pobrać paczki')
+        else { setError('Nie udało się pobrać paczki'); return }
       }
+      setReady(true)
     })()
   }, [org, repo, load])
 
   if (error) return <div className="h-screen flex items-center justify-center text-red-400">{error}</div>
-  if (def) return <Navigate to="/metro" replace />
+  if (ready) return <Navigate to="/metro" replace />
   return <div className="h-screen flex items-center justify-center text-white/30">Ładuję drzewo...</div>
 }

@@ -12,7 +12,7 @@ export default function UserPanel() {
   const pct = Math.round((counts.mastered / total) * 100)
 
   return (
-    <div className="h-screen flex items-center justify-center">
+    <div className="h-full flex items-center justify-center">
       <div className="w-72 bg-white/[0.04] rounded-xl p-5 text-white space-y-4">
         <h2 className="text-lg font-bold">{def.title}</h2>
 

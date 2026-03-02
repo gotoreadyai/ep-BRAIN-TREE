@@ -115,8 +115,6 @@ export default function TreeScene() {
 
   return (
     <Canvas camera={{ fov: 50, position: [center[0], center[1] + 30, center[2] + 50], near: 0.1, far: 300 }}>
-      <ambientLight intensity={0.4} />
-      <pointLight position={[0, 10, 30]} intensity={0.3} />
 
       <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
       <Sparkles count={40} scale={[60, 50, 30]} size={2} speed={0.3} opacity={0.4} />
@@ -132,7 +130,7 @@ export default function TreeScene() {
           color={def.branches[node.branch]?.color ?? '#6b7280'}
           isBackbone={node.branch === backbone}
           selected={selectedNodeId === node.id}
-          proximity={connectedIds ? (connectedIds.get(node.id) ?? 0.06) : 1}
+          proximity={connectedIds ? (connectedIds.get(node.id) ?? 0.08) : 1}
           state={nodeStates[node.id] ?? 'locked'}
           onClick={setSelectedNode} />
       ))}

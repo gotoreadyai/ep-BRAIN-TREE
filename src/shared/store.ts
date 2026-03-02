@@ -83,7 +83,9 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const nodeMap = new Map(nodes.map(n => [n.id, n]))
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
     const saved = localStorage.getItem(PK(def.id))
-    const nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes)
+    let nodeStates: Record<string, NodeStatus>
+    try { nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes) }
+    catch { nodeStates = initStates(def.nodes) }
     set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates, content: {},
       selectedNodeId: null, connectedIds: null })
   },

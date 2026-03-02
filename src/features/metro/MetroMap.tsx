@@ -106,13 +106,13 @@ export default function MetroMap() {
                 fill="transparent" className="cursor-pointer"
                 onClick={() => setSelectedNode(node.id)} />
 
-              {state !== 'locked' && (
+              {(isBack || state !== 'locked') && (
                 <text x={node.sx + r + 7} y={node.sy + 3.5}
                   fill="#ccc"
                   fontSize={isBack ? 11 : 9}
                   fontWeight={isBack ? 700 : 400}
                   className="pointer-events-none select-none"
-                  opacity={(state === 'available' ? 0.5 : 0.85) * np}>
+                  opacity={(state === 'locked' ? 0.25 : state === 'available' ? 0.5 : 0.85) * np}>
                   {node.title}
                   {isBridge && node.bridgeTo && (
                     <tspan fill={color} opacity={0.7}>{` → ${node.bridgeTo}`}</tspan>
