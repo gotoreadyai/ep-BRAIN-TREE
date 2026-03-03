@@ -40,11 +40,19 @@ export default function NodeMesh({ node, color, isBackbone, selected, hasSelecti
       </Billboard>
 
       {(isBackbone || selected || (hasSelection && proximity > 0.9)) && (
-        <Html center position={[0, size + 0.8, 0]} style={{ pointerEvents: 'none', opacity: selected ? 1 : proximity * 0.7 }}>
-          <div className="text-[11px] text-white bg-black/90 px-2 py-1 rounded max-w-[200px] text-center whitespace-nowrap">
-            <div className={isBackbone && !selected ? 'text-[10px] font-semibold' : 'font-bold'}>{node.title}</div>
-            {selected && node.description && <div className="text-gray-400 text-[10px] mt-0.5">{node.description}</div>}
-            {selected && node.branch === 'bridge' && node.bridgeTo && <div className="text-[9px] mt-0.5" style={{ color }}>→ {node.bridgeTo}</div>}
+        <Html center position={[0, size + 0.8, 0]} zIndexRange={selected ? [1000, 1000] : [0, 0]}
+          style={{ pointerEvents: 'none', opacity: selected ? 1 : proximity * 0.7 }}>
+          <div className={`text-center rounded ${selected
+            ? 'text-sm text-white px-4 py-3 border bg-black/95 whitespace-nowrap'
+            : 'text-[11px] text-white bg-black/90 px-2 py-1 whitespace-nowrap'}`}
+            style={selected ? { borderColor: color } : undefined}>
+            <div className={selected ? 'font-bold' : isBackbone ? 'text-[10px] font-semibold' : ''}>{node.title}</div>
+            {selected && node.description && (
+              <div className="text-gray-300 text-[10px] mt-0.5 whitespace-normal line-clamp-2">{node.description}</div>
+            )}
+            {selected && node.branch === 'bridge' && node.bridgeTo && (
+              <div className="text-[9px] mt-0.5" style={{ color }}>→ {node.bridgeTo}</div>
+            )}
           </div>
         </Html>
       )}
