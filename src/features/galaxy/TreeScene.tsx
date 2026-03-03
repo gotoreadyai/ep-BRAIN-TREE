@@ -4,18 +4,29 @@ import { OrbitControls, Line, QuadraticBezierLine } from '@react-three/drei'
 import { useTreeStore } from '../../shared/store'
 import NodeMesh from './NodeMesh'
 
-/* Kamera leci do wybranego węzła, zoom in, auto-rotate zatrzymuje się */
+/* Kamera leci do wybranego węzła, potem swobodny zoom */
 function CameraRig({ target, selected }: { target: readonly [number, number, number]; selected: boolean }) {
   const ref = useRef<any>(null)
+  const flying = useRef(false)
+  const prevTarget = useRef(target)
+
+  /* Nowy target = start fly-to */
+  if (target !== prevTarget.current) { flying.current = true; prevTarget.current = target }
+
   useFrame(({ camera }) => {
     if (!ref.current) return
     const t = ref.current.target
     t.x += (target[0] - t.x) * 0.05
     t.y += (target[1] - t.y) * 0.05
     t.z += (target[2] - t.z) * 0.05
-    const d = camera.position.distanceTo(t)
-    const ideal = selected ? 25 : 60
-    camera.position.sub(t).multiplyScalar(1 + (ideal / d - 1) * 0.05).add(t)
+    /* Zoom tylko podczas fly-to, potem wheel swobodny */
+    if (flying.current) {
+      const d = camera.position.distanceTo(t)
+      const ideal = selected ? 25 : 60
+      const diff = Math.abs(d - ideal)
+      camera.position.sub(t).multiplyScalar(1 + (ideal / d - 1) * 0.05).add(t)
+      if (diff < 1) flying.current = false
+    }
     ref.current.update()
   })
   return <OrbitControls ref={ref} enablePan enableZoom enableRotate
@@ -70,6 +81,7 @@ export default function TreeScene() {
           color={def.branches[node.branch]?.color ?? '#6b7280'}
           isBackbone={node.branch === backbone}
           selected={selectedNodeId === node.id}
+          hasSelection={!!selectedNodeId}
           proximity={connectedIds ? (connectedIds.get(node.id) ?? 0.08) : 1}
           state={nodeStates[node.id] ?? 'locked'}
           onClick={setSelectedNode} />

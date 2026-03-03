@@ -16,7 +16,7 @@ export default function UserPanel() {
   const tiers = new Map<number, typeof nodes>()
   for (const n of nodes) {
     if (n.branch === 'bridge') continue
-    const t = n.branch === backbone ? n.tier : n.tier
+    const t = n.tier
     if (!tiers.has(t)) tiers.set(t, [])
     tiers.get(t)!.push(n)
   }

@@ -7,11 +7,11 @@ import type { NodeStatus } from '../../shared/types'
 
 interface Props {
   node: GalaxyNode; color: string; isBackbone: boolean
-  selected: boolean; proximity: number; state: NodeStatus
+  selected: boolean; hasSelection: boolean; proximity: number; state: NodeStatus
   onClick: (id: string) => void
 }
 
-export default function NodeMesh({ node, color, isBackbone, selected, proximity, state, onClick }: Props) {
+export default function NodeMesh({ node, color, isBackbone, selected, hasSelection, proximity, state, onClick }: Props) {
   const size = isBackbone ? 0.7 : node.branch === 'bridge' ? 0.3 : 0.45
   const scale = (state === 'locked' ? 0.4 : 1) * (selected ? 1.2 : 1)
   const stateOp = state === 'locked' ? 0.1 : state === 'available' ? 0.35 : 1
@@ -39,7 +39,7 @@ export default function NodeMesh({ node, color, isBackbone, selected, proximity,
         </mesh>
       </Billboard>
 
-      {(isBackbone || selected || proximity > 0.9) && (
+      {(isBackbone || selected || (hasSelection && proximity > 0.9)) && (
         <Html center position={[0, size + 0.8, 0]} style={{ pointerEvents: 'none', opacity: selected ? 1 : proximity * 0.7 }}>
           <div className="text-[11px] text-white bg-black/90 px-2 py-1 rounded max-w-[200px] text-center whitespace-nowrap">
             <div className={isBackbone && !selected ? 'text-[10px] font-semibold' : 'font-bold'}>{node.title}</div>
