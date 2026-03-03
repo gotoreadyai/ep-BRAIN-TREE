@@ -1,23 +1,22 @@
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom'
 import { useTreeStore } from './shared/store'
 import TreeScene from './features/galaxy/TreeScene'
-import MetroMap from './features/metro/MetroMap'
 import NodePanel from './features/node-panel/NodePanel'
 import ExtensionShelf from './features/extensions/ExtensionShelf'
 import Catalog from './features/catalog/Catalog'
 import Loader from './features/loader/Loader'
 import UserPanel from './features/user/UserPanel'
-import { Map, Sparkles, User } from 'lucide-react'
+import { Sparkles, User } from 'lucide-react'
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-1.5 px-3 py-1 rounded transition-colors text-xs ${isActive ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/50'}`
 
-function TreeView({ galaxy }: { galaxy?: boolean }) {
+function TreeView() {
   const { def, nodes } = useTreeStore()
   if (!def) return null
   return (
     <>
-      {galaxy ? <TreeScene /> : <MetroMap />}
+      <TreeScene />
       <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5 pointer-events-none">
         {Object.entries(def.branches).map(([branch, { color, label }]) => {
           if (!nodes.some(n => n.branch === branch)) return null
@@ -49,7 +48,6 @@ function TreeShell() {
         <div className="flex items-center gap-2">
           <ExtensionShelf />
           <nav className="flex items-center gap-0.5 rounded bg-white/[0.04] p-0.5">
-            <NavLink to="/metro" className={navCls}><Map size={12} /> Metro</NavLink>
             <NavLink to="/galaxy" className={navCls}><Sparkles size={12} /> Galaxy</NavLink>
             <NavLink to="/profile" className={navCls}><User size={12} /> Profil</NavLink>
           </nav>
@@ -58,10 +56,9 @@ function TreeShell() {
 
       <main className="flex-1 relative min-h-0">
         <Routes>
-          <Route path="metro" element={<TreeView />} />
-          <Route path="galaxy" element={<TreeView galaxy />} />
+          <Route path="galaxy" element={<TreeView />} />
           <Route path="profile" element={<UserPanel />} />
-          <Route path="*" element={<Navigate to="metro" replace />} />
+          <Route path="*" element={<Navigate to="galaxy" replace />} />
         </Routes>
       </main>
     </div>

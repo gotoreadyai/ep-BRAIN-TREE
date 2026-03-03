@@ -2,11 +2,11 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Html, Billboard } from '@react-three/drei'
 import type { MeshBasicMaterial } from 'three'
-import type { PosNode } from '../../shared/graph'
+import type { GalaxyNode } from '../../shared/graph'
 import type { NodeStatus } from '../../shared/types'
 
 interface Props {
-  node: PosNode; color: string; isBackbone: boolean
+  node: GalaxyNode; color: string; isBackbone: boolean
   selected: boolean; proximity: number; state: NodeStatus
   onClick: (id: string) => void
 }
@@ -23,18 +23,8 @@ export default function NodeMesh({ node, color, isBackbone, selected, proximity,
     matRef.current.opacity = (0.7 + Math.sin(clock.elapsedTime * 1.5) * 0.3) * proximity
   })
 
-  const groupRef = useRef<any>(null)
-  useFrame(({ clock }) => {
-    if (!groupRef.current) return
-    const p = groupRef.current.position
-    // Lerp do docelowej pozycji (node.x/y/z mogą się zmieniać dynamicznie)
-    p.x += (node.x - p.x) * 0.03
-    p.y += (node.y - p.y) * 0.03
-    p.z += (node.z - p.z) * 0.03
-  })
-
   return (
-    <group ref={groupRef} position={[node.x, node.y, node.z]}>
+    <group position={[node.gx, node.gy, node.gz]}>
       <Billboard>
         {/* Outline ring — zawsze widoczny */}
         <mesh scale={scale}>

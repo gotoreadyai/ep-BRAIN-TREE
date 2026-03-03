@@ -30,6 +30,6 @@ export default function Loader() {
   }, [org, repo, load])
 
   if (error) return <div className="h-screen flex items-center justify-center text-red-400">{error}</div>
-  if (ready) return <Navigate to="/metro" replace />
+  if (ready) return <Navigate to="/galaxy" replace />
   return <div className="h-screen flex items-center justify-center text-white/30">Ładuję drzewo...</div>
 }

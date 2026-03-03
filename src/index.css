@@ -3,9 +3,3 @@
 @tailwind utilities;
 
 body { background: #0a0a0f; }
-
-@keyframes metro-progress {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 0; }
-}
-.metro-progress { animation: metro-progress 3s ease-in-out infinite; }

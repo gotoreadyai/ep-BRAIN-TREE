@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { SkillTreeDef, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus, PackEntry } from './types'
-import { buildLayout, type PosNode, type ColumnHeader } from './graph'
+import { buildLayout, buildGalaxyLayout, type PosNode, type ColumnHeader, type GalaxyNode } from './graph'
 
 // Zasięg widoczności — BFS z gradientem (0=selected, 1=sąsiad, 2=60%, 3=30%)
 const FADE = [1, 1, 0.6, 0.3]
@@ -57,6 +57,7 @@ interface TreeStore {
   edges: TreeEdge[]
   columns: ColumnHeader[]
   nodeMap: Map<string, PosNode>
+  galaxyNodes: GalaxyNode[]
   backbone: string
   selectedNodeId: string | null
   connectedIds: Map<string, number> | null
@@ -75,7 +76,7 @@ interface TreeStore {
 
 export const useTreeStore = create<TreeStore>((set) => ({
   def: null, nodes: [], edges: [], columns: [],
-  nodeMap: new Map(), backbone: '',
+  nodeMap: new Map(), galaxyNodes: [], backbone: '',
   selectedNodeId: null, connectedIds: null,
   nodeStates: {}, content: {},
   extensions: [], loadedExtensions: new Set(),
@@ -88,7 +89,8 @@ export const useTreeStore = create<TreeStore>((set) => ({
     let nodeStates: Record<string, NodeStatus>
     try { nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes, backbone) }
     catch { nodeStates = initStates(def.nodes, backbone) }
-    set({ def, nodes, edges, columns, nodeMap, backbone, nodeStates, content: {},
+    const galaxyNodes = buildGalaxyLayout(def)
+    set({ def, nodes, edges, columns, nodeMap, galaxyNodes, backbone, nodeStates, content: {},
       selectedNodeId: null, connectedIds: null })
   },
 
@@ -107,7 +109,8 @@ export const useTreeStore = create<TreeStore>((set) => ({
         unlock(id, nodeStates, edges, nodeMap)
     }
     localStorage.setItem(PK(merged.id), JSON.stringify(nodeStates))
-    return { def: merged, nodes, edges, columns, nodeMap, nodeStates,
+    const galaxyNodes = buildGalaxyLayout(merged)
+    return { def: merged, nodes, edges, columns, nodeMap, galaxyNodes, nodeStates,
       content: s.content, loadedExtensions,
       selectedNodeId: null, connectedIds: null }
   }),
