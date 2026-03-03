@@ -59,15 +59,13 @@ export default function TreeScene() {
         if (!a || !b) return null
         const pa = connectedIds?.get(edge.from) ?? 0.08, pb = connectedIds?.get(edge.to) ?? 0.08
         const ep = connectedIds ? Math.max(pa, pb) : 1
-        const aL = nodeStates[edge.from] === 'locked', bL = nodeStates[edge.to] === 'locked'
-        const sm = (aL && bL) ? 0.05 : (aL || bL) ? 0.3 : 1
         const color = def.branches[b.branch]?.color ?? '#6b7280'
-        const baseOp = edge.type === 'bridge' ? 0.3 : 0.15
-        const op = baseOp * sm * ep
+        const direct = pa > 0.9 && pb > 0.9
+        const op = direct ? 0.5 : 0.06
         if (edge.type === 'progression')
           return <Line key={i} renderOrder={0} points={[[a.gx, a.gy, a.gz], [b.gx, b.gy, b.gz]]}
             color={def.branches[backbone]?.color ?? '#ffffff'} lineWidth={3}
-            opacity={(aL && bL) ? 0.03 : (aL || bL) ? 0.08 : 0.2} transparent />
+            opacity={direct ? 0.5 : 0.08} transparent />
         const mx = (a.gx + b.gx) / 2, mz = (a.gz + b.gz) / 2
         const my = (a.gy + b.gy) / 2 + 1.5
         return <QuadraticBezierLine key={i} renderOrder={0}

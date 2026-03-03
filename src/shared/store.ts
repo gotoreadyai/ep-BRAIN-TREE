@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import type { SkillTreeDef, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus, PackEntry } from './types'
-import { buildLayout, buildGalaxyLayout, type PosNode, type ColumnHeader, type GalaxyNode } from './graph'
+import type { SkillTreeDef, TreeNode, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus, PackEntry } from './types'
+import { buildGalaxyLayout, type GalaxyNode } from './graph'
 
 // Zasięg widoczności — BFS z gradientem (0=selected, 1=sąsiad, 2=60%, 3=30%)
 const FADE = [1, 1, 0.6, 0.3]
@@ -28,7 +28,7 @@ function initStates(nodes: { id: string; tier: number; branch: string }[], backb
 
 // Odblokuj 1 per branch: gatunki/motywy → lektury → warsztat. Progression + bridge osobno.
 function unlock(id: string, states: Record<string, NodeStatus>, edges: TreeEdge[],
-  nodeMap: Map<string, { branch: string }>) {
+  nodeMap: Map<string, TreeNode>) {
   const unlocked = new Set<string>()
   for (const e of edges) {
     const o = e.from === id ? e.to : e.to === id ? e.from : null
@@ -41,22 +41,22 @@ function unlock(id: string, states: Record<string, NodeStatus>, edges: TreeEdge[
 
 const PK = (id: string) => `progress:${id}`
 
-// Scal rozszerzenie z bazą
+// Scal rozszerzenie z bazą (deduplikacja nodes + edges)
 function merge(base: SkillTreeDef, ext: TreePack): SkillTreeDef {
-  const ids = new Set(base.nodes.map(n => n.id))
+  const nodeIds = new Set(base.nodes.map(n => n.id))
+  const edgeKeys = new Set(base.edges.map(e => `${e.from}:${e.to}`))
   return {
     ...base,
-    nodes: [...base.nodes, ...ext.nodes.filter(n => !ids.has(n.id))],
-    edges: [...base.edges, ...ext.edges],
+    nodes: [...base.nodes, ...ext.nodes.filter(n => !nodeIds.has(n.id))],
+    edges: [...base.edges, ...ext.edges.filter(e => !edgeKeys.has(`${e.from}:${e.to}`))],
   }
 }
 
 interface TreeStore {
   def: SkillTreeDef | null
-  nodes: PosNode[]
+  nodes: TreeNode[]
   edges: TreeEdge[]
-  columns: ColumnHeader[]
-  nodeMap: Map<string, PosNode>
+  nodeMap: Map<string, TreeNode>
   galaxyNodes: GalaxyNode[]
   backbone: string
   selectedNodeId: string | null
@@ -75,30 +75,28 @@ interface TreeStore {
 }
 
 export const useTreeStore = create<TreeStore>((set) => ({
-  def: null, nodes: [], edges: [], columns: [],
+  def: null, nodes: [], edges: [],
   nodeMap: new Map(), galaxyNodes: [], backbone: '',
   selectedNodeId: null, connectedIds: null,
   nodeStates: {}, content: {},
   extensions: [], loadedExtensions: new Set(),
 
   load: (def) => {
-    const { nodes, edges, columns } = buildLayout(def)
-    const nodeMap = new Map(nodes.map(n => [n.id, n]))
+    const nodeMap = new Map(def.nodes.map(n => [n.id, n]))
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
     const saved = localStorage.getItem(PK(def.id))
     let nodeStates: Record<string, NodeStatus>
     try { nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes, backbone) }
     catch { nodeStates = initStates(def.nodes, backbone) }
     const galaxyNodes = buildGalaxyLayout(def)
-    set({ def, nodes, edges, columns, nodeMap, galaxyNodes, backbone, nodeStates, content: {},
+    set({ def, nodes: def.nodes, edges: def.edges, nodeMap, galaxyNodes, backbone, nodeStates, content: {},
       selectedNodeId: null, connectedIds: null })
   },
 
   loadExtension: (pack, repo) => set((s) => {
     if (!s.def) return s
     const merged = merge(s.def, pack)
-    const { nodes, edges, columns } = buildLayout(merged)
-    const nodeMap = new Map(nodes.map(n => [n.id, n]))
+    const nodeMap = new Map(merged.nodes.map(n => [n.id, n]))
     const loadedExtensions = new Set(s.loadedExtensions)
     loadedExtensions.add(repo)
     // Zachowaj postęp, nowe węzły = locked, odblokuj przy opanowanych sąsiadach
@@ -106,11 +104,11 @@ export const useTreeStore = create<TreeStore>((set) => ({
     for (const n of pack.nodes) if (!(n.id in nodeStates)) nodeStates[n.id] = 'locked'
     for (const id of Object.keys(nodeStates)) {
       if (nodeStates[id] === 'mastered' || nodeStates[id] === 'in_progress')
-        unlock(id, nodeStates, edges, nodeMap)
+        unlock(id, nodeStates, merged.edges, nodeMap)
     }
     localStorage.setItem(PK(merged.id), JSON.stringify(nodeStates))
     const galaxyNodes = buildGalaxyLayout(merged)
-    return { def: merged, nodes, edges, columns, nodeMap, galaxyNodes, nodeStates,
+    return { def: merged, nodes: merged.nodes, edges: merged.edges, nodeMap, galaxyNodes, nodeStates,
       content: s.content, loadedExtensions,
       selectedNodeId: null, connectedIds: null }
   }),
