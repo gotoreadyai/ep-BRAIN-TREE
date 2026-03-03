@@ -17,29 +17,29 @@ export default function NodeMesh({ node, color, isBackbone, selected, proximity,
   const stateOp = state === 'locked' ? 0.1 : state === 'available' ? 0.35 : 1
   const ringOp = (state === 'locked' ? 0.1 : state === 'available' ? 0.25 : state === 'in_progress' ? 0.4 : 0.6) * proximity
 
-  const matRef = useRef<MeshBasicMaterial>(null)
+  const ringRef = useRef<MeshBasicMaterial>(null)
   useFrame(({ clock }) => {
-    if (!matRef.current || proximity < 0.5 || state !== 'in_progress') return
-    matRef.current.opacity = (0.7 + Math.sin(clock.elapsedTime * 1.5) * 0.3) * proximity
+    if (!ringRef.current || state !== 'in_progress') return
+    ringRef.current.opacity = (0.4 + Math.sin(clock.elapsedTime * 1.5) * 0.15) * proximity
   })
 
   return (
     <group position={[node.gx, node.gy, node.gz]}>
       <Billboard>
         {/* Outline ring — zawsze widoczny */}
-        <mesh scale={scale}>
+        <mesh scale={scale} renderOrder={10}>
           <ringGeometry args={[size * 1.1, size * 1.25, 32]} />
-          <meshBasicMaterial color={color} transparent opacity={ringOp} />
+          <meshBasicMaterial ref={ringRef} color={color} transparent opacity={ringOp} depthTest={false} />
         </mesh>
 
         {/* Wypełnienie — disc */}
-        <mesh scale={scale} onClick={(e) => { e.stopPropagation(); onClick(node.id) }}>
+        <mesh scale={scale} renderOrder={10} onClick={(e) => { e.stopPropagation(); onClick(node.id) }}>
           <circleGeometry args={[size, 32]} />
-          <meshBasicMaterial ref={matRef} color={color} transparent opacity={stateOp * proximity} />
+          <meshBasicMaterial color={color} transparent opacity={stateOp * proximity} depthTest={false} />
         </mesh>
       </Billboard>
 
-      {(isBackbone || (selected && state !== 'locked')) && (
+      {(isBackbone || selected || proximity > 0.9) && (
         <Html center position={[0, size + 0.8, 0]} style={{ pointerEvents: 'none', opacity: selected ? 1 : proximity * 0.7 }}>
           <div className="text-[11px] text-white bg-black/90 px-2 py-1 rounded max-w-[200px] text-center whitespace-nowrap">
             <div className={isBackbone && !selected ? 'text-[10px] font-semibold' : 'font-bold'}>{node.title}</div>

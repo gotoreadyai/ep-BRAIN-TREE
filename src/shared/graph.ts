@@ -153,7 +153,7 @@ export function buildGalaxyLayout(def: SkillTreeDef): GalaxyNode[] {
     let mx = 0, my = 0, mz = 0
     for (const nb of nbs) { const [x, y, z] = pos.get(nb)!; mx += x; my += y; mz += z }
     mx /= nbs.length; my /= nbs.length; mz /= nbs.length
-    pos.set(p.id, [mx, my - 1.5, mz + i * 0.8])
+    pos.set(p.id, [mx, my - 8, mz + i * 0.8])
   })
 
   return def.nodes.map(n => {

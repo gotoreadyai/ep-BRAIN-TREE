@@ -1,8 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Line, Stars, Sparkles } from '@react-three/drei'
+import { OrbitControls, Line, QuadraticBezierLine } from '@react-three/drei'
 import { useTreeStore } from '../../shared/store'
-import type { GalaxyNode } from '../../shared/graph'
 import NodeMesh from './NodeMesh'
 
 /* Kamera leci do wybranego węzła, zoom in, auto-rotate zatrzymuje się */
@@ -39,27 +38,31 @@ export default function TreeScene() {
   }, [galaxyNodes])
 
   if (!def) return null
-  const bridgeColor = def.branches.bridge?.color ?? '#fbbf24'
   const sel = selectedNodeId ? gMap.get(selectedNodeId) : null
   const camTarget = sel ? [sel.gx, sel.gy, sel.gz] as const : center
 
   return (
     <Canvas camera={{ fov: 50, position: [center[0], center[1] + 30, center[2] + 50], near: 0.1, far: 300 }}>
-
-      <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
-      <Sparkles count={40} scale={[60, 50, 30]} size={2} speed={0.3} opacity={0.4} />
-
       {edges.map((edge, i) => {
         const a = gMap.get(edge.from), b = gMap.get(edge.to)
         if (!a || !b) return null
-        const ep = connectedIds ? Math.max(connectedIds.get(edge.from) ?? 0.08, connectedIds.get(edge.to) ?? 0.08) : 1
+        const pa = connectedIds?.get(edge.from) ?? 0.08, pb = connectedIds?.get(edge.to) ?? 0.08
+        const ep = connectedIds ? Math.max(pa, pb) : 1
+        const direct = pa > 0.9 && pb > 0.9  /* oba końce = kliknięty lub jego sąsiad */
         const aL = nodeStates[edge.from] === 'locked', bL = nodeStates[edge.to] === 'locked'
         const sm = (aL && bL) ? 0.05 : (aL || bL) ? 0.3 : 1
-        const color = edge.type === 'bridge' ? bridgeColor : edge.type === 'progression' ? '#ffffff' : '#888888'
-        const baseOp = edge.type === 'bridge' ? 0.3 : edge.type === 'progression' ? 0.15 : 0.08
-        return <Line key={i} points={[[a.gx, a.gy, a.gz], [b.gx, b.gy, b.gz]]}
-          color={color} lineWidth={edge.type === 'progression' ? 1.5 : 0.5}
-          opacity={baseOp * sm * ep} transparent />
+        const color = def.branches[b.branch]?.color ?? '#6b7280'
+        const baseOp = edge.type === 'bridge' ? 0.3 : 0.15
+        const op = direct ? 0.7 : baseOp * sm * ep
+        if (edge.type === 'progression')
+          return <Line key={i} renderOrder={0} points={[[a.gx, a.gy, a.gz], [b.gx, b.gy, b.gz]]}
+            color={def.branches[backbone]?.color ?? '#ffffff'} lineWidth={3}
+            opacity={(aL && bL) ? 0.03 : (aL || bL) ? 0.08 : 0.2} transparent />
+        const mx = (a.gx + b.gx) / 2, mz = (a.gz + b.gz) / 2
+        const my = (a.gy + b.gy) / 2 + 1.5
+        return <QuadraticBezierLine key={i} renderOrder={0}
+          start={[a.gx, a.gy, a.gz]} end={[b.gx, b.gy, b.gz]} mid={[mx, my, mz]}
+          color={color} lineWidth={1} opacity={op} transparent />
       })}
 
       {galaxyNodes.map(node => (
