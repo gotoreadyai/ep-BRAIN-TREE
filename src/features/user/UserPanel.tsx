@@ -3,13 +3,17 @@ import { useTreeStore } from '../../shared/store'
 import { STATUS_COLOR, STATUS_LABEL, type NodeStatus } from '../../shared/types'
 
 export default function UserPanel() {
-  const { def, nodes, edges, nodeStates, resetProgress, setSelectedNode } = useTreeStore()
+  const { def, nodes, edges, nodeStates, discoveryMap, resetProgress, setSelectedNode } = useTreeStore()
   if (!def) return <Navigate to="/" replace />
 
   const total = nodes.length
   const counts: Record<NodeStatus, number> = { mastered: 0, in_progress: 0, available: 0, locked: 0 }
   for (const n of nodes) counts[nodeStates[n.id] ?? 'locked']++
   const pct = total > 0 ? Math.round((counts.mastered / total) * 100) : 0
+  const discoveredNodes = Object.keys(discoveryMap).length
+  const avgStrength = discoveredNodes > 0
+    ? Object.values(discoveryMap).reduce((s, v) => s + v, 0) / discoveredNodes
+    : 0
 
   /* Minimap: grupuj po backbone tierach */
   const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
@@ -41,6 +45,13 @@ export default function UserPanel() {
             <Stat key={s} n={counts[s]} label={STATUS_LABEL[s]} color={STATUS_COLOR[s]} />
           ))}
         </div>
+
+        {discoveredNodes > 0 && (
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <Stat n={discoveredNodes} label="Odkryte" color="#a78bfa" />
+            <Stat n={Math.round(avgStrength * 100)} label="Pamięć %" color="#34d399" />
+          </div>
+        )}
 
         <div className="flex gap-2 text-xs">
           <Link to="/galaxy" className="flex-1 text-center py-1.5 rounded bg-white/10 hover:bg-white/15 transition-colors">
@@ -76,7 +87,9 @@ export default function UserPanel() {
                   return (
                     <Link key={n.id} to="/galaxy" onClick={() => setSelectedNode(n.id)}
                       className="text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1 transition-colors hover:bg-white/10"
-                      style={{ background: col + '15', opacity: st === 'locked' ? 0.3 : 1 }}>
+                      style={{ background: col + '15',
+                        opacity: st === 'locked' ? 0.3 : 0.5 + (discoveryMap[n.id] ?? 0) * 0.5,
+                        boxShadow: (discoveryMap[n.id] ?? 0) > 0.5 ? `0 0 6px ${col}40` : undefined }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: col }} />
                       {n.title}
                     </Link>

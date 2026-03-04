@@ -1,8 +1,12 @@
-import { create } from 'zustand'
-import type { SkillTreeDef, TreeNode, TreeEdge, TreePack, ContentPack, ContentItem, NodeStatus, PackEntry } from './types'
-import { buildGalaxyLayout, type GalaxyNode } from './graph'
+// Store — graf wiedzy + content + kompozycja z modułem uczenia
 
-// Zasięg widoczności — BFS z gradientem (0=selected, 1=sąsiad, 2=60%, 3=30%)
+import { create } from 'zustand'
+import type { SkillTreeDef, TreeNode, TreeEdge, TreePack, ContentPack, ContentItem, PackEntry } from './types'
+import { buildGalaxyLayout, type GalaxyNode } from './graph'
+import { createLearningSlice, initLearningState, loadDiscovery, unlock,
+  type LearningState, type LearningActions } from './learning'
+
+// Zasięg widoczności — BFS z gradientem
 const FADE = [1, 1, 0.6, 0.3]
 function connected(id: string | null, edges: TreeEdge[]): Map<string, number> | null {
   if (!id) return null
@@ -19,29 +23,7 @@ function connected(id: string | null, edges: TreeEdge[]): Map<string, number> | 
   return m
 }
 
-// Początkowy stan: tylko backbone tier 0 = available, reszta locked
-function initStates(nodes: { id: string; tier: number; branch: string }[], backbone: string) {
-  const s: Record<string, NodeStatus> = {}
-  for (const n of nodes) s[n.id] = (n.tier === 0 && n.branch === backbone) ? 'available' : 'locked'
-  return s
-}
-
-// Odblokuj 1 per branch: gatunki/motywy → lektury → warsztat. Progression + bridge osobno.
-function unlock(id: string, states: Record<string, NodeStatus>, edges: TreeEdge[],
-  nodeMap: Map<string, TreeNode>) {
-  const unlocked = new Set<string>()
-  for (const e of edges) {
-    const o = e.from === id ? e.to : e.to === id ? e.from : null
-    if (!o || states[o] !== 'locked') continue
-    if (e.type === 'progression' || e.type === 'bridge') { states[o] = 'available'; continue }
-    const branch = nodeMap.get(o)?.branch
-    if (branch && !unlocked.has(branch)) { states[o] = 'available'; unlocked.add(branch) }
-  }
-}
-
-const PK = (id: string) => `progress:${id}`
-
-// Scal rozszerzenie z bazą (deduplikacja nodes + edges)
+// Scal rozszerzenie z bazą (deduplikacja)
 function merge(base: SkillTreeDef, ext: TreePack): SkillTreeDef {
   const nodeIds = new Set(base.nodes.map(n => n.id))
   const edgeKeys = new Set(base.edges.map(e => `${e.from}:${e.to}`))
@@ -52,7 +34,7 @@ function merge(base: SkillTreeDef, ext: TreePack): SkillTreeDef {
   }
 }
 
-interface TreeStore {
+interface TreeState {
   def: SkillTreeDef | null
   nodes: TreeNode[]
   edges: TreeEdge[]
@@ -61,36 +43,40 @@ interface TreeStore {
   backbone: string
   selectedNodeId: string | null
   connectedIds: Map<string, number> | null
-  nodeStates: Record<string, NodeStatus>
   content: Record<string, ContentItem[]>
   extensions: PackEntry[]
   loadedExtensions: Set<string>
+}
+
+interface TreeActions {
   load: (def: SkillTreeDef) => void
   loadExtension: (pack: TreePack, repo: string) => void
-  loadContent: (pack: ContentPack) => void
-  progressNode: (id: string) => void
-  resetProgress: () => void
+  loadContent: (pack: ContentPack, repo?: string) => void
   setExtensions: (exts: PackEntry[]) => void
   setSelectedNode: (id: string | null) => void
 }
 
-export const useTreeStore = create<TreeStore>((set) => ({
+type Store = TreeState & TreeActions & LearningState & LearningActions
+
+export const useTreeStore = create<Store>((set, get) => ({
+  // --- Warstwa uczenia (slice) ---
+  ...createLearningSlice(set, get),
+
+  // --- Graf wiedzy ---
   def: null, nodes: [], edges: [],
   nodeMap: new Map(), galaxyNodes: [], backbone: '',
   selectedNodeId: null, connectedIds: null,
-  nodeStates: {}, content: {},
+  content: {},
   extensions: [], loadedExtensions: new Set(),
 
   load: (def) => {
     const nodeMap = new Map(def.nodes.map(n => [n.id, n]))
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
-    const saved = localStorage.getItem(PK(def.id))
-    let nodeStates: Record<string, NodeStatus>
-    try { nodeStates = saved ? JSON.parse(saved) : initStates(def.nodes, backbone) }
-    catch { nodeStates = initStates(def.nodes, backbone) }
+    const learning = initLearningState(def.nodes, backbone, def.id)
     const galaxyNodes = buildGalaxyLayout(def)
-    set({ def, nodes: def.nodes, edges: def.edges, nodeMap, galaxyNodes, backbone, nodeStates, content: {},
-      selectedNodeId: null, connectedIds: null })
+    set({ def, nodes: def.nodes, edges: def.edges, nodeMap, galaxyNodes, backbone,
+      ...learning, content: {}, selectedNodeId: null, connectedIds: null })
+    loadDiscovery(def.id, set)
   },
 
   loadExtension: (pack, repo) => set((s) => {
@@ -99,43 +85,26 @@ export const useTreeStore = create<TreeStore>((set) => ({
     const nodeMap = new Map(merged.nodes.map(n => [n.id, n]))
     const loadedExtensions = new Set(s.loadedExtensions)
     loadedExtensions.add(repo)
-    // Zachowaj postęp, nowe węzły = locked, odblokuj przy opanowanych sąsiadach
     const nodeStates = { ...s.nodeStates }
     for (const n of pack.nodes) if (!(n.id in nodeStates)) nodeStates[n.id] = 'locked'
     for (const id of Object.keys(nodeStates)) {
       if (nodeStates[id] === 'mastered' || nodeStates[id] === 'in_progress')
         unlock(id, nodeStates, merged.edges, nodeMap)
     }
-    localStorage.setItem(PK(merged.id), JSON.stringify(nodeStates))
+    localStorage.setItem(`progress:${merged.id}`, JSON.stringify(nodeStates))
     const galaxyNodes = buildGalaxyLayout(merged)
-    return { def: merged, nodes: merged.nodes, edges: merged.edges, nodeMap, galaxyNodes, nodeStates,
-      content: s.content, loadedExtensions,
-      selectedNodeId: null, connectedIds: null }
+    return { def: merged, nodes: merged.nodes, edges: merged.edges, nodeMap, galaxyNodes,
+      nodeStates, loadedExtensions, selectedNodeId: null, connectedIds: null }
   }),
 
-  loadContent: (pack) => set((s) => {
+  loadContent: (pack, repo?) => set((s) => {
     const content = { ...s.content }
     for (const [nodeId, items] of Object.entries(pack.content))
       content[nodeId] = [...(content[nodeId] ?? []), ...items]
-    return { content }
-  }),
-
-  progressNode: (id) => set((s) => {
-    if (!s.def) return s
-    const st = s.nodeStates[id]
-    if (st === 'locked' || st === 'mastered') return s
-    const nodeStates = { ...s.nodeStates }
-    if (st === 'available') { nodeStates[id] = 'in_progress'; unlock(id, nodeStates, s.edges, s.nodeMap) }
-    else { nodeStates[id] = 'mastered'; unlock(id, nodeStates, s.edges, s.nodeMap) }
-    localStorage.setItem(PK(s.def.id), JSON.stringify(nodeStates))
-    return { nodeStates }
-  }),
-
-  resetProgress: () => set((s) => {
-    if (!s.def) return s
-    const nodeStates = initStates(s.def.nodes, s.backbone)
-    localStorage.setItem(PK(s.def.id), JSON.stringify(nodeStates))
-    return { nodeStates }
+    if (!repo) return { content }
+    const loadedExtensions = new Set(s.loadedExtensions)
+    loadedExtensions.add(repo)
+    return { content, loadedExtensions }
   }),
 
   setExtensions: (exts) => set({ extensions: exts }),

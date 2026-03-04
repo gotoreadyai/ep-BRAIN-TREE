@@ -12,9 +12,9 @@ interface Props {
 }
 
 export default function NodeMesh({ node, color, isBackbone, selected, hasSelection, proximity, state, onClick }: Props) {
-  const size = isBackbone ? 0.7 : node.branch === 'bridge' ? 0.3 : 0.45
+  const size = isBackbone ? 1.1 : node.branch === 'bridge' ? 0.3 : 0.45
   const scale = (state === 'locked' ? 0.4 : 1) * (selected ? 1.2 : 1)
-  const stateOp = state === 'locked' ? 0.1 : state === 'available' ? 0.35 : 1
+  const baseOp = state === 'locked' ? 0.1 : state === 'available' ? 0.35 : 1
   const ringOp = (state === 'locked' ? 0.1 : state === 'available' ? 0.25 : state === 'in_progress' ? 0.4 : 0.6) * proximity
 
   const ringRef = useRef<MeshBasicMaterial>(null)
@@ -32,10 +32,11 @@ export default function NodeMesh({ node, color, isBackbone, selected, hasSelecti
           <meshBasicMaterial ref={ringRef} color={color} transparent opacity={ringOp} depthTest={false} />
         </mesh>
 
+
         {/* Wypełnienie — disc */}
         <mesh scale={scale} renderOrder={10} onClick={(e) => { e.stopPropagation(); onClick(node.id) }}>
           <circleGeometry args={[size, 32]} />
-          <meshBasicMaterial color={color} transparent opacity={stateOp * proximity} depthTest={false} />
+          <meshBasicMaterial color={color} transparent opacity={baseOp * proximity} depthTest={false} />
         </mesh>
       </Billboard>
 
