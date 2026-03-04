@@ -10,7 +10,6 @@ function CameraRig({ target, selected }: { target: readonly [number, number, num
   const flying = useRef(false)
   const prevTarget = useRef(target)
 
-  /* Nowy target = start fly-to */
   if (target !== prevTarget.current) { flying.current = true; prevTarget.current = target }
 
   useFrame(({ camera }) => {
@@ -19,7 +18,6 @@ function CameraRig({ target, selected }: { target: readonly [number, number, num
     t.x += (target[0] - t.x) * 0.05
     t.y += (target[1] - t.y) * 0.05
     t.z += (target[2] - t.z) * 0.05
-    /* Zoom tylko podczas fly-to, potem wheel swobodny */
     if (flying.current) {
       const d = camera.position.distanceTo(t)
       const ideal = selected ? 25 : 60
@@ -37,9 +35,8 @@ function CameraRig({ target, selected }: { target: readonly [number, number, num
 
 export default function TreeScene() {
   const { def, galaxyNodes, edges, backbone, selectedNodeId,
-    connectedIds, setSelectedNode, nodeStates } = useTreeStore()
+    connectedIds, setSelectedNode } = useTreeStore()
 
-  /* Pozycje stabilne — zależą TYLKO od galaxyNodes (obliczanych raz przy load) */
   const { gMap, center } = useMemo(() => {
     const nonBridge = galaxyNodes.filter(n => n.branch !== 'bridge')
     const cx = nonBridge.reduce((s, n) => s + n.gx, 0) / (nonBridge.length || 1)
@@ -58,7 +55,6 @@ export default function TreeScene() {
         const a = gMap.get(edge.from), b = gMap.get(edge.to)
         if (!a || !b) return null
         const pa = connectedIds?.get(edge.from) ?? 0.08, pb = connectedIds?.get(edge.to) ?? 0.08
-        const ep = connectedIds ? Math.max(pa, pb) : 1
         const color = def.branches[b.branch]?.color ?? '#6b7280'
         const direct = pa > 0.9 && pb > 0.9
         const op = direct ? 0.5 : 0.06
@@ -80,7 +76,6 @@ export default function TreeScene() {
           selected={selectedNodeId === node.id}
           hasSelection={!!selectedNodeId}
           proximity={connectedIds ? (connectedIds.get(node.id) ?? 0.08) : 1}
-          state={nodeStates[node.id] ?? 'locked'}
           onClick={setSelectedNode} />
       ))}
 

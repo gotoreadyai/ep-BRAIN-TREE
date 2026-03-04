@@ -1,0 +1,21 @@
+{
+  "id": "polski-biblia-kontent",
+  "baseId": "polski-matura-2026",
+  "title": "Biblia — terminy i pytania",
+  "content": {
+    "biblia": [
+      { "type": "term", "text": "genesis" },
+      { "type": "term", "text": "apokalipsa" },
+      { "type": "term", "text": "przypowieść" },
+      { "type": "term", "text": "psalm" },
+      { "type": "term", "text": "vanitas" },
+      { "type": "term", "text": "eschatologia" },
+      { "type": "definition", "text": "Księga Rodzaju (Genesis) — pierwsza księga Biblii, opisuje stworzenie świata, grzech pierworodny, potop i wieżę Babel." },
+      { "type": "definition", "text": "Apokalipsa św. Jana — ostatnia księga NT, wizja końca świata. Symbole: Babilon, Bestia, Nowe Jeruzalem." },
+      { "type": "question", "text": "Jaką rolę pełni motyw vanitas w Księdze Koheleta?", "answer": "Kohelet głosi marność wszelkiego ludzkiego wysiłku — bogactwo, wiedza i praca nie dają trwałego sensu, bo śmierć zrównuje wszystkich.", "cost": 2 },
+      { "type": "question", "text": "Porównaj obraz Boga w Księdze Rodzaju i Księdze Hioba.", "answer": "W Genesis Bóg jest Stwórcą-porządkiem, w Hiobie — tajemniczą siłą, która dopuszcza cierpienie sprawiedliwego, testując wiarę.", "cost": 2 },
+      { "type": "flashcard", "text": "eschatologia", "answer": "Nauka o rzeczach ostatecznych — śmierć, sąd, niebo, piekło. W Biblii widoczna szczególnie w Apokalipsie.", "cost": 1 },
+      { "type": "flashcard", "text": "przypowieść", "answer": "Krótka narracja alegoryczna z przesłaniem moralnym. Np. o siewcy, synu marnotrawnym, miłosiernym Samarytaninie.", "cost": 1 }
+    ]
+  }
+}

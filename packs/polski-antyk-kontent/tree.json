@@ -1,0 +1,49 @@
+{
+  "id": "polski-antyk-kontent",
+  "baseId": "polski-matura-2026",
+  "title": "Antyk — terminy i pytania",
+  "content": {
+    "antyk": [
+      { "type": "term", "text": "hybris" },
+      { "type": "term", "text": "katharsis" },
+      { "type": "term", "text": "fatum" },
+      { "type": "term", "text": "mimesis" },
+      { "type": "term", "text": "polis" },
+      { "type": "definition", "text": "Hybris — pycha, przekroczenie granicy wyznaczonej człowiekowi przez bogów. Prowadzi do upadku (np. Kreont w Antygonie)." },
+      { "type": "definition", "text": "Katharsis — oczyszczenie przez litość i trwogę. Widz tragedii przeżywa emocje bohaterów i wychodzi wewnętrznie oczyszczony." },
+      { "type": "question", "text": "Dlaczego Antyk jest fundamentem europejskiej kultury literackiej?", "answer": "Antyk stworzył podstawowe gatunki (tragedia, epos, liryka), pojęcia (mimesis, katharsis) i archetypy (Prometeusz, Odys), do których nawiązuje cała późniejsza literatura.", "cost": 2 },
+      { "type": "flashcard", "text": "fatum", "answer": "Los, przeznaczenie — siła nadrzędna wobec bogów i ludzi. W tragedii antycznej bohater nie może uciec przed fatum.", "cost": 1 }
+    ],
+    "antygona": [
+      { "type": "term", "text": "tragizm" },
+      { "type": "term", "text": "hamartia" },
+      { "type": "term", "text": "ironia tragiczna" },
+      { "type": "term", "text": "chór" },
+      { "type": "definition", "text": "Hamartia — błąd tragiczny bohatera, który uruchamia łańcuch nieszczęść. Antygona: decyzja o pochówku brata. Kreont: pycha władcy." },
+      { "type": "definition", "text": "Chór — zbiorowy komentator w tragedii antycznej. Reprezentuje opinię publiczną, ostrzega, podsumowuje morał." },
+      { "type": "question", "text": "Kto jest właściwym bohaterem tragicznym Antygony — Antygona czy Kreont?", "answer": "Oboje. Antygona broni prawa boskiego kosztem życia. Kreont broni prawa ludzkiego kosztem rodziny. Oboje popełniają hamartię i ponoszą konsekwencje.", "cost": 3 },
+      { "type": "question", "text": "Na czym polega konflikt tragiczny w Antygonie?", "answer": "Zderzenie dwóch równorzędnych racji — prawo boskie (pochówek brata) vs prawo państwowe (zakaz Kreonta). Nie ma dobrego wyjścia.", "cost": 2 },
+      { "type": "flashcard", "text": "ironia tragiczna", "answer": "Sytuacja, w której bohater nie wie tego, co wie widz. Kreont skazuje Antygonę, nie wiedząc że zniszczy własną rodzinę.", "cost": 1 }
+    ],
+    "mitologia": [
+      { "type": "term", "text": "mit" },
+      { "type": "term", "text": "archetyp" },
+      { "type": "term", "text": "heros" },
+      { "type": "term", "text": "Olimp" },
+      { "type": "definition", "text": "Archetyp — pierwotny wzorzec postaci lub sytuacji powtarzający się w kulturze. Np. heros, matka, podróż, ofiara." },
+      { "type": "question", "text": "Dlaczego mitologia grecka jest wciąż żywa w literaturze współczesnej?", "answer": "Mity dostarczają uniwersalnych archetypów — Prometeusz (bunt), Syzyf (absurd), Odys (podróż) — które każda epoka reinterpretuje.", "cost": 2 },
+      { "type": "flashcard", "text": "heros", "answer": "Półbóg lub bohater o nadludzkich cechach. Wykonuje czyny niemożliwe dla zwykłych ludzi (Herakles, Achilles, Odyseusz).", "cost": 1 }
+    ],
+    "iliada": [
+      { "type": "term", "text": "epos" },
+      { "type": "term", "text": "inwokacja" },
+      { "type": "term", "text": "heksametr" },
+      { "type": "term", "text": "epitheton ornans" },
+      { "type": "term", "text": "porównanie homeryckie" },
+      { "type": "definition", "text": "Inwokacja — uroczysty zwrot do muzy na początku eposu. \"Gniew, bogini, opiewaj Achilla, syna Peleusa...\"" },
+      { "type": "definition", "text": "Epitheton ornans — stały przydomek (\"szybkonogi Achilles\", \"różanopalca Eos\"). Formuła oralnej tradycji epickiej." },
+      { "type": "question", "text": "Czym porównanie homeryckie różni się od zwykłego porównania?", "answer": "Jest rozbudowane — porównanie staje się samodzielnym obrazem, miniaturowym opowiadaniem (np. walka jak burza, heros jak lew polujący).", "cost": 2 },
+      { "type": "flashcard", "text": "heksametr", "answer": "Metrum eposu antycznego — wers sześciostopowy, oparty na stopach daktylicznych. Nadaje uroczysty, majestatyczny rytm.", "cost": 1 }
+    ]
+  }
+}

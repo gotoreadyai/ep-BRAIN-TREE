@@ -6,7 +6,7 @@ import ExtensionShelf from './features/extensions/ExtensionShelf'
 import Catalog from './features/catalog/Catalog'
 import Loader from './features/loader/Loader'
 import UserPanel from './features/user/UserPanel'
-import { Sparkles, User, Coins } from 'lucide-react'
+import { Sparkles, User } from 'lucide-react'
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-1.5 px-3 py-1 rounded transition-colors text-xs ${isActive ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/50'}`
@@ -35,7 +35,7 @@ function TreeView() {
 }
 
 function TreeShell() {
-  const { def, nodes, edges, coins } = useTreeStore()
+  const { def, nodes, edges } = useTreeStore()
   if (!def) return <Navigate to="/" replace />
 
   return (
@@ -44,7 +44,6 @@ function TreeShell() {
         <div className="flex items-center gap-3">
           <h1 className="text-white text-sm font-bold leading-none">{def.title}</h1>
           <span className="text-white/20 text-[10px]">{nodes.length} węzłów · {edges.length} połączeń</span>
-          <span className="flex items-center gap-1 text-amber-400 text-xs font-bold"><Coins size={14} /> {coins}</span>
         </div>
         <div className="flex items-center gap-2">
           <ExtensionShelf />

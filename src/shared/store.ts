@@ -1,10 +1,8 @@
-// Store — graf wiedzy + content + kompozycja z modułem uczenia
+// Store — graf wiedzy + content
 
 import { create } from 'zustand'
 import type { SkillTreeDef, TreeNode, TreeEdge, TreePack, ContentPack, ContentItem, PackEntry } from './types'
 import { buildGalaxyLayout, type GalaxyNode } from './graph'
-import { createLearningSlice, initLearningState, loadDiscovery, unlock,
-  type LearningState, type LearningActions } from './learning'
 
 // Zasięg widoczności — BFS z gradientem
 const FADE = [1, 1, 0.6, 0.3]
@@ -56,13 +54,7 @@ interface TreeActions {
   setSelectedNode: (id: string | null) => void
 }
 
-type Store = TreeState & TreeActions & LearningState & LearningActions
-
-export const useTreeStore = create<Store>((set, get) => ({
-  // --- Warstwa uczenia (slice) ---
-  ...createLearningSlice(set, get),
-
-  // --- Graf wiedzy ---
+export const useTreeStore = create<TreeState & TreeActions>((set) => ({
   def: null, nodes: [], edges: [],
   nodeMap: new Map(), galaxyNodes: [], backbone: '',
   selectedNodeId: null, connectedIds: null,
@@ -72,11 +64,9 @@ export const useTreeStore = create<Store>((set, get) => ({
   load: (def) => {
     const nodeMap = new Map(def.nodes.map(n => [n.id, n]))
     const backbone = Object.keys(def.branches).filter(b => b !== 'bridge')[0]
-    const learning = initLearningState(def.nodes, backbone, def.id)
     const galaxyNodes = buildGalaxyLayout(def)
     set({ def, nodes: def.nodes, edges: def.edges, nodeMap, galaxyNodes, backbone,
-      ...learning, content: {}, selectedNodeId: null, connectedIds: null })
-    loadDiscovery(def.id, set)
+      content: {}, selectedNodeId: null, connectedIds: null })
   },
 
   loadExtension: (pack, repo) => set((s) => {
@@ -85,16 +75,9 @@ export const useTreeStore = create<Store>((set, get) => ({
     const nodeMap = new Map(merged.nodes.map(n => [n.id, n]))
     const loadedExtensions = new Set(s.loadedExtensions)
     loadedExtensions.add(repo)
-    const nodeStates = { ...s.nodeStates }
-    for (const n of pack.nodes) if (!(n.id in nodeStates)) nodeStates[n.id] = 'locked'
-    for (const id of Object.keys(nodeStates)) {
-      if (nodeStates[id] === 'mastered' || nodeStates[id] === 'in_progress')
-        unlock(id, nodeStates, merged.edges, nodeMap)
-    }
-    localStorage.setItem(`progress:${merged.id}`, JSON.stringify(nodeStates))
     const galaxyNodes = buildGalaxyLayout(merged)
     return { def: merged, nodes: merged.nodes, edges: merged.edges, nodeMap, galaxyNodes,
-      nodeStates, loadedExtensions, selectedNodeId: null, connectedIds: null }
+      loadedExtensions, selectedNodeId: null, connectedIds: null }
   }),
 
   loadContent: (pack, repo?) => set((s) => {

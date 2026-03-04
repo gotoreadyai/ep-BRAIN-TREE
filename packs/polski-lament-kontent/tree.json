@@ -1,0 +1,20 @@
+{
+  "id": "polski-lament-kontent",
+  "baseId": "polski-matura-2026",
+  "title": "Lament świętokrzyski — terminy i pytania",
+  "content": {
+    "lament": [
+      { "type": "term", "text": "planctus" },
+      { "type": "term", "text": "compassio" },
+      { "type": "term", "text": "liryka religijna" },
+      { "type": "term", "text": "Stabat Mater" },
+      { "type": "term", "text": "pieta" },
+      { "type": "definition", "text": "Planctus — gatunek średniowiecznej liryki żałobnej. Lament świętokrzyski to planctus Matki Boskiej opłakującej Syna." },
+      { "type": "definition", "text": "Compassio — współcierpienie. Maryja cierpi razem z Chrystusem, dzieląc Jego mękę duchowo i fizycznie." },
+      { "type": "question", "text": "Jak Lament świętokrzyski łączy sacrum z ludzkim cierpieniem?", "answer": "Maryja mówi językiem zwykłej matki — bólu, bezradności, pragnienia zamiany miejsc z synem. Sacrum staje się intymne i ludzkie.", "cost": 2 },
+      { "type": "question", "text": "Porównaj obraz matki w Lamencie i w Biblii.", "answer": "W Biblii Maryja jest milcząca i posłuszna. W Lamencie dostaje głos — krzyczy, błaga, buntuje się przeciw losowi.", "cost": 3 },
+      { "type": "flashcard", "text": "Stabat Mater", "answer": "Łaciński hymn o Matce Boskiej stojącej pod krzyżem. Źródło inspiracji dla Lamentu świętokrzyskiego.", "cost": 1 },
+      { "type": "flashcard", "text": "pieta", "answer": "Przedstawienie Maryi trzymającej ciało Chrystusa. Motyw obecny w rzeźbie (Michał Anioł) i literaturze (Lament).", "cost": 1 }
+    ]
+  }
+}

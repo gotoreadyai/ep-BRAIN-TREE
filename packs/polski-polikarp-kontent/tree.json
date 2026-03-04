@@ -1,0 +1,20 @@
+{
+  "id": "polski-polikarp-kontent",
+  "baseId": "polski-matura-2026",
+  "title": "Rozmowa Mistrza Polikarpa — terminy i pytania",
+  "content": {
+    "polikarp": [
+      { "type": "term", "text": "danse macabre" },
+      { "type": "term", "text": "memento mori" },
+      { "type": "term", "text": "dialog" },
+      { "type": "term", "text": "dydaktyzm" },
+      { "type": "term", "text": "ars moriendi" },
+      { "type": "definition", "text": "Danse macabre (taniec śmierci) — motyw, w którym Śmierć zaprasza do tańca ludzi wszystkich stanów. Wyrównuje hierarchię społeczną." },
+      { "type": "definition", "text": "Ars moriendi — sztuka dobrego umierania. Średniowieczny traktat o przygotowaniu na śmierć — modlitwa, sakramenty, rachunek sumienia." },
+      { "type": "question", "text": "Dlaczego Śmierć w Rozmowie jest postacią demokratyczną?", "answer": "Śmierć nie rozróżnia stanów — zabiera króla, biskupa, rycerza i żebraka. Jest jedyną siłą, wobec której wszyscy są równi.", "cost": 2 },
+      { "type": "question", "text": "Jak Rozmowa Mistrza Polikarpa realizuje średniowieczny dydaktyzm?", "answer": "Utwór jest dialogiem pouczającym — Śmierć uczy Polikarpa (i czytelnika), że życie doczesne jest marnością, a jedyny ratunek to cnota i wiara.", "cost": 3 },
+      { "type": "flashcard", "text": "memento mori", "answer": "\"Pamiętaj o śmierci\" — średniowieczne hasło przypominające o nieuchronności śmierci i potrzebie życia w zgodzie z wiarą.", "cost": 1 },
+      { "type": "flashcard", "text": "dydaktyzm", "answer": "Funkcja pouczająca literatury. W średniowieczu dominująca — teksty miały uczyć moralności, nie bawić.", "cost": 1 }
+    ]
+  }
+}

@@ -1,42 +1,27 @@
-import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { Html, Billboard } from '@react-three/drei'
-import type { MeshBasicMaterial } from 'three'
 import type { GalaxyNode } from '../../shared/graph'
-import type { NodeStatus } from '../../shared/types'
 
 interface Props {
   node: GalaxyNode; color: string; isBackbone: boolean
-  selected: boolean; hasSelection: boolean; proximity: number; state: NodeStatus
+  selected: boolean; hasSelection: boolean; proximity: number
   onClick: (id: string) => void
 }
 
-export default function NodeMesh({ node, color, isBackbone, selected, hasSelection, proximity, state, onClick }: Props) {
+export default function NodeMesh({ node, color, isBackbone, selected, hasSelection, proximity, onClick }: Props) {
   const size = isBackbone ? 1.1 : node.branch === 'bridge' ? 0.3 : 0.45
-  const scale = (state === 'locked' ? 0.4 : 1) * (selected ? 1.2 : 1)
-  const baseOp = state === 'locked' ? 0.1 : state === 'available' ? 0.35 : 1
-  const ringOp = (state === 'locked' ? 0.1 : state === 'available' ? 0.25 : state === 'in_progress' ? 0.4 : 0.6) * proximity
-
-  const ringRef = useRef<MeshBasicMaterial>(null)
-  useFrame(({ clock }) => {
-    if (!ringRef.current || state !== 'in_progress') return
-    ringRef.current.opacity = (0.4 + Math.sin(clock.elapsedTime * 1.5) * 0.15) * proximity
-  })
+  const scale = selected ? 1.2 : 1
 
   return (
     <group position={[node.gx, node.gy, node.gz]}>
       <Billboard>
-        {/* Outline ring — zawsze widoczny */}
         <mesh scale={scale} renderOrder={10}>
           <ringGeometry args={[size * 1.1, size * 1.25, 32]} />
-          <meshBasicMaterial ref={ringRef} color={color} transparent opacity={ringOp} depthTest={false} />
+          <meshBasicMaterial color={color} transparent opacity={0.6 * proximity} depthTest={false} />
         </mesh>
 
-
-        {/* Wypełnienie — disc */}
         <mesh scale={scale} renderOrder={10} onClick={(e) => { e.stopPropagation(); onClick(node.id) }}>
           <circleGeometry args={[size, 32]} />
-          <meshBasicMaterial color={color} transparent opacity={baseOp * proximity} depthTest={false} />
+          <meshBasicMaterial color={color} transparent opacity={proximity} depthTest={false} />
         </mesh>
       </Billboard>
 
