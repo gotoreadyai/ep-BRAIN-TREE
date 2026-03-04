@@ -53,8 +53,8 @@ export interface LearningState {
 
 export interface LearningActions {
   progressNode: (id: string) => void
-  revealItem: (nodeId: string, index: number) => void
-  recordDiscovery: (nodeId: string, itemIndex: number) => Promise<void>
+  revealItem: (contentId: string) => void
+  recordDiscovery: (nodeId: string, contentId: string) => Promise<void>
   resetProgress: () => void
 }
 
@@ -98,33 +98,34 @@ export function createLearningSlice(set: any, get: any): LearningState & Learnin
       return { nodeStates, coins }
     }),
 
-    revealItem: (nodeId, index) => set((s: any) => {
+    revealItem: (contentId) => set((s: any) => {
       if (!s.def) return s
-      const key = `${nodeId}:${index}`
-      if (s.revealed[key]) return s
-      const item = s.content[nodeId]?.[index]
-      if (!item) return s
-      const cost = item.cost ?? 0
+      if (s.revealed[contentId]) return s
+      // Znajdź item po contentId
+      let cost = 0
+      for (const items of Object.values(s.content) as any[][]) {
+        const found = items.find((it: any) => it.id === contentId)
+        if (found) { cost = found.cost ?? 0; break }
+      }
       if (cost > 0 && s.coins < cost) return s
       const coins = s.coins - cost
-      const revealed = { ...s.revealed, [key]: true }
+      const revealed = { ...s.revealed, [contentId]: true }
       localStorage.setItem(CK(s.def.id), String(coins))
       localStorage.setItem(RK(s.def.id), JSON.stringify(revealed))
       return { coins, revealed }
     }),
 
-    recordDiscovery: async (nodeId, itemIndex) => {
+    recordDiscovery: async (nodeId, contentId) => {
       const s = get()
       if (!s.def) return
-      const id = `${s.def.id}::${nodeId}::${itemIndex}`
       const now = Date.now()
-      const existing = s.discoveryEdges.find((e: DiscoveryEdge) => e.id === id)
+      const existing = s.discoveryEdges.find((e: DiscoveryEdge) => e.id === contentId)
       const edge: DiscoveryEdge = existing
         ? { ...existing, hits: existing.hits + 1, lastSeen: now }
-        : { id, treeId: s.def.id, nodeId, itemIndex, hits: 1, firstSeen: now, lastSeen: now }
+        : { id: contentId, treeId: s.def.id, nodeId, hits: 1, firstSeen: now, lastSeen: now }
       await discSave(edge)
       const edges = existing
-        ? s.discoveryEdges.map((e: DiscoveryEdge) => e.id === id ? edge : e)
+        ? s.discoveryEdges.map((e: DiscoveryEdge) => e.id === contentId ? edge : e)
         : [...s.discoveryEdges, edge]
       set({ discoveryEdges: edges, discoveryMap: buildDiscoveryMap(edges) })
     },

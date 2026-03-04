@@ -100,7 +100,8 @@ export const useTreeStore = create<Store>((set, get) => ({
   loadContent: (pack, repo?) => set((s) => {
     const content = { ...s.content }
     for (const [nodeId, items] of Object.entries(pack.content))
-      content[nodeId] = [...(content[nodeId] ?? []), ...items]
+      content[nodeId] = [...(content[nodeId] ?? []),
+        ...items.map((item, i) => ({ ...item, id: item.id ?? `${pack.id}::${nodeId}::${i}` }))]
     if (!repo) return { content }
     const loadedExtensions = new Set(s.loadedExtensions)
     loadedExtensions.add(repo)

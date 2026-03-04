@@ -14,10 +14,9 @@ export const STATUS_COLOR: Record<NodeStatus, string> = {
 
 // Krawędź odkrycia — rejestruje interakcję ucznia z elementem treści
 export interface DiscoveryEdge {
-  id: string           // "${treeId}::${nodeId}::${itemIndex}"
+  id: string           // stabilny contentId elementu treści
   treeId: string
   nodeId: string
-  itemIndex: number
   hits: number
   firstSeen: number    // timestamp ms
   lastSeen: number     // timestamp ms

@@ -41,6 +41,7 @@ export interface TreePack {
 }
 
 export interface ContentItem {
+  id?: string            // opcjonalne — generowane przy ładowaniu jeśli brak
   type: 'definition' | 'flashcard' | 'question' | 'term'
   text: string
   answer?: string

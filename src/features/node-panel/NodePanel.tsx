@@ -11,8 +11,8 @@ export default function NodePanel() {
   // Rejestruj odkrycie darmowych elementów przy otwarciu panelu
   useEffect(() => {
     if (!node) return
-    items.forEach((item, i) => {
-      if ((item.cost ?? 0) === 0) recordDiscovery(node.id, i)
+    items.forEach(item => {
+      if ((item.cost ?? 0) === 0 && item.id) recordDiscovery(node.id, item.id)
     })
   }, [selectedNodeId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -23,9 +23,9 @@ export default function NodePanel() {
   const conns = edges.filter(e => e.from === node.id || e.to === node.id)
   const strength = discoveryMap[node.id] ?? 0
 
-  const handleReveal = (nodeId: string, index: number) => {
-    revealItem(nodeId, index)
-    recordDiscovery(nodeId, index)
+  const handleReveal = (contentId: string) => {
+    revealItem(contentId)
+    recordDiscovery(node.id, contentId)
   }
 
   return (
@@ -92,11 +92,11 @@ export default function NodePanel() {
       )}
       {items.length > 0 && (
         <div className="mt-2 pt-2 border-t border-white/10 space-y-1.5">
-          {items.map((item, i) => {
+          {items.map(item => {
             const cost = item.cost ?? 0
-            const isRevealed = cost === 0 || revealed[`${node.id}:${i}`]
+            const isRevealed = cost === 0 || revealed[item.id!]
             return (
-              <div key={i} className="text-xs">
+              <div key={item.id} className="text-xs">
                 <span className="text-[9px] uppercase tracking-wider text-white/20">{item.type}</span>
                 {isRevealed ? (
                   <>
@@ -104,7 +104,7 @@ export default function NodePanel() {
                     {item.answer && <p className="text-gray-500 text-[11px] mt-0.5">→ {item.answer}</p>}
                   </>
                 ) : (
-                  <button onClick={() => handleReveal(node.id, i)}
+                  <button onClick={() => handleReveal(item.id!)}
                     className="w-full text-left py-1 px-1.5 rounded bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-colors"
                     disabled={coins < cost}>
                     <span className="blur-sm select-none">{item.text.slice(0, 20)}...</span>
