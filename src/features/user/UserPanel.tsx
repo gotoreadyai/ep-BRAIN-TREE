@@ -87,9 +87,7 @@ export default function UserPanel() {
                   return (
                     <Link key={n.id} to="/galaxy" onClick={() => setSelectedNode(n.id)}
                       className="text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1 transition-colors hover:bg-white/10"
-                      style={{ background: col + '15',
-                        opacity: st === 'locked' ? 0.3 : 0.5 + (discoveryMap[n.id] ?? 0) * 0.5,
-                        boxShadow: (discoveryMap[n.id] ?? 0) > 0.5 ? `0 0 6px ${col}40` : undefined }}>
+                      style={{ background: col + '15', opacity: st === 'locked' ? 0.3 : 1 }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: col }} />
                       {n.title}
                     </Link>
